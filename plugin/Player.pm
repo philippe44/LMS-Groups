@@ -36,7 +36,7 @@ sub new {
 	if ( defined $uuid && $uuid =~ /0000000000/ ) {
 		$uuid = undef;
 	}
-	
+
 	$client->init_accessor(
 
 		# device identify
@@ -78,7 +78,7 @@ sub new {
 		#It is used to allow the player to act as the master for the locally maintained parameter.
 		sequenceNumber          => 0,
 
-		# The (controllerSequenceId, controllerSequenceNumber) tuple is used to enable synchronization of commands 
+		# The (controllerSequenceId, controllerSequenceNumber) tuple is used to enable synchronization of commands
 		# sent to the player via the server and via an additional, out-of-band mechanism (currently UDAP).
 		# It is used to enable the player to discard duplicate commands received via both channels.
 		controllerSequenceId    => undef,
@@ -87,7 +87,7 @@ sub new {
 		# streaming control
 		controller              => undef,
 		bufferReady             => 1,					# XXX => always ready
-		readyToStream           => 1, 
+		readyToStream           => 1,
 		streamStartTimestamp	=> undef,
 
 		# streaming state
@@ -120,12 +120,12 @@ sub new {
 		currentPlaylistRender   => undef,
 		_currentPlaylistUpdateTime => Time::HiRes::time(), # only changes to the playlist
 		_currentPlaylistChangeTime => undef,               # updated on song changes
-		
+
 		# display state
 		display                 => undef,
 		lines                   => undef,
 		customVolumeLines       => undef,
-	    customPlaylistLines     => undef,
+		customPlaylistLines     => undef,
 		lines2periodic          => undef,
 		periodicUpdateTime      => 0,
 		blocklines              => undef,
@@ -152,10 +152,10 @@ sub new {
 		playPoints              => undef,              # set of (timeStamp, apparentStartTime) tuples to determine consistency
 		jiffiesEpoch            => undef,
 		jiffiesOffsetList       => [],                 # array tracking the relative deviations relative to our clock
-		
+
 		# alarm state
 		alarmData		=> {},			# Stored alarm data for this client.  Private.
-		
+
 		# Knob data
 		knobData		=> {},			# Stored knob data for this client
 
@@ -173,14 +173,14 @@ sub new {
 		_pluginData             => {},
 		updatePending           => 0,
 		disconnected            => 0,
-	
+
 	);
-	
+
 	$Slim::Player::Client::clientHash{$id} = $client;
-		
+
 	$client->controller(Slim::Player::StreamingController->new($client));
-	
-	if (!main::SCANNER) {	
+
+	if (!main::SCANNER) {
 		Slim::Control::Request::notifyFromArray($client, ['client', 'new']);
 	}
 
@@ -193,14 +193,14 @@ sub modelName { "Group" }
 sub opened { return undef }
 sub formats { return qw(wma ogg flc aif pcm mp3) }
 sub bufferFullness { 100000 }
-sub bytesReceived { 100000 }	
+sub bytesReceived { 100000 }
 sub signalStrength { 100 }
 sub startAt { 1 }
 sub resume { 1 }
 sub pauseForInterval { 1 }
 sub skipAhead { 1 }
 
-sub connected { 
+sub connected {
 	my $client = shift;
 	return defined $client->tcpsock() ? 1 : 0;
 }
@@ -209,15 +209,15 @@ sub connected {
 sub nextChunk {
 	$log->error("NEXT CHUNK CALLED");
 	my $chunk = Slim::Player::Source::nextChunk(@_);
-	@{$_[0]->chunks} = ();	
+	@{$_[0]->chunks} = ();
 }
 
 sub songElapsedSeconds {
 	my $active = firstActive($_[0]);
 	return $active->songElapsedSeconds if $active;
 }
-		
-sub play { 
+
+sub play {
 	my $client = shift;
 	my $emptyChunk;
 	my $powerOn = $prefs->get('powerup');
@@ -225,12 +225,12 @@ sub play {
 	# as nextChunk is never called, then we need this strange thing to empty the chunks
 	$emptyChunk	= sub {
 		my $client = shift;
-		@{$client->chunks} = ();	
+		@{$client->chunks} = ();
 		Slim::Utils::Timers::setTimer($client, Time::HiRes::time() + 0.5, $emptyChunk);
 	};
-	
+
 	Slim::Utils::Timers::setTimer($client, Time::HiRes::time() + 0.5, $emptyChunk);
-	
+
 	my %groups = Plugins::Groups::Plugin::getGroups();
 	foreach my $member ( @{$groups{$client->id}->{'members'}} )
 	{
@@ -238,10 +238,10 @@ sub play {
 		next unless $slave;
 		$log->debug("Synchronizing " . $slave->name() . " to " .  $client->name() . " Power " . $powerOn);
 		#do not use [execute]
-		$slave->power(1) if ($powerOn); 
+		$slave->power(1) if ($powerOn);
 		$client->execute( [ 'sync', $slave->id ] );
 	}
-				
+
 	return 1;
 }
 
@@ -253,11 +253,11 @@ sub pause {
 
 sub stop {
 	my $client = shift;
-	
+
 	Slim::Utils::Timers::killTimers($client);
-	
+
 	$client->SUPER::stop();
-	
+
 	foreach my $slave ($client->syncedWith()) {
 		$slave->execute( [ 'sync', '-' ] );
 	}
@@ -267,7 +267,7 @@ sub power {
 	my $client = shift;
 	my $on     = shift;
 	my $noplay = shift;
-		
+
 	my $currOn = $prefs->client($client)->get('power') || 0;
 
 	return $currOn unless defined $on;
@@ -276,14 +276,14 @@ sub power {
 	my $resume = $prefs->client($client)->get('powerOnResume');
 	$resume =~ /(.*)Off-(.*)On/;
 	my ($resumeOff, $resumeOn) = ($1,$2);
-	
+
 	my $controller = $client->controller();
 
 	if (!$on) {
 		# turning player off - unsync/pause/stop player and move to off mode
 		my $playing = $controller->isPlaying(1);
 		$prefs->client($client)->set('playingAtPowerOff', $playing);
-			
+
 		if ($playing && ($resumeOff eq 'Pause')) {
 			# Pause client mid track
 			$client->execute(["pause", 1, undef, 1]);
@@ -292,30 +292,30 @@ sub power {
 		} else {
 			$client->execute(["stop"]);
 		}
-	 
+
 		# Do now, not earlier so that playmode changes still work
-	 	$prefs->client($client)->set('power', $on); # Do now, not earlier so that 
-		
+		$prefs->client($client)->set('power', $on); # Do now, not earlier so that
+
 	} else {
 
 		$prefs->client($client)->set('power', $on);
-		
+
 		$controller->playerActive($client);
 
 		if (!$controller->isPlaying() && !$noplay) {
-			
+
 			if ($resumeOn =~ /Reset/) {
 				# reset playlist to start, but don't start the playback yet
 				$client->execute(["playlist","jump", 0, 1, 1]);
 			}
-			
+
 			if ($resumeOn =~ /Play/ && Slim::Player::Playlist::song($client)
 				&& $prefs->client($client)->get('playingAtPowerOff')) {
 				$client->execute(["play"]); # will resume if paused
 			}
-		}		
+		}
 	}
-	
+
 	# all players in group have synced power
 	foreach my $slave ($client->syncedWith()) {
 		# do not use [execute] otherwise this creates an infinite loop
@@ -326,26 +326,26 @@ sub power {
 sub volume {
 	my $client = shift;
 	my $newVolume = shift;
-	
+
 	if (defined $newVolume) {
 		my $oldVolume = $client->SUPER::volume();
-	 						
+
 		foreach my $slave ($client->syncedWith()) {
 			my $slaveVolume = $slave->volume();
 			$slave->volume($oldVolume ? $slaveVolume*$newVolume/$oldVolume  : $newVolume);
-		}	
-	}	
-	
+		}
+	}
+
 	return $client->SUPER::volume($newVolume, @_);
 }
 
 sub firstActive {
 	my $client = shift;
-		
+
 	foreach my $slave ($client->syncedWith()) {
 		return $slave unless !$slave->power;
 	}
-	
+
 	return undef;
 }
 
