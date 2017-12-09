@@ -1,0 +1,31 @@
+PLUGIN_GROUPS_NAME
+	EN	Player Groups
+	
+PLUGIN_GROUPS_DESC
+	EN	Create Player Groups
+	
+PLUGIN_GROUPS_STARTING
+	EN	Starting Player Groups
+	
+PLUGIN_GROUPS_NEWGROUP
+	EN	Add a new Group player
+	
+PLUGIN_GROUPS_NEWGROUP_NAME
+	EN	New Group name
+	
+PLUGIN_GROUPS_NEWGROUP_DESC
+	EN	Enter the name of the new Group Player set, and press Apply to create it. Then edit the player set in the area above to get the details correct.
+	
+PLUGIN_GROUPS_DELETEGROUP
+	EN	Delete this Group player
+	
+PLUGIN_GROUPS_DELETEGROUP_DESC
+	EN	Check this box and press Apply to permanently delete this Group player
+	
+PLUGIN_GROUPS_POWERUP
+	EN	Power on players when starting to play
+	
+PLUGIN_GROUPS_POWERUP_DESC
+	EN	Check this to power on all players when starting to play on the Group.
+	
+	
