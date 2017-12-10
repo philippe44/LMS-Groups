@@ -19,6 +19,8 @@ use Slim::Utils::Misc;
 use Slim::Utils::Network;
 use Slim::Utils::Prefs;
 
+use Data::Dumper;
+
 my $prefs = preferences('plugin.groups');
 my $log   = logger('plugin.groups');
 
@@ -182,8 +184,9 @@ sub new {
 
 	if (!main::SCANNER) {
 		Slim::Control::Request::notifyFromArray($client, ['client', 'new']);
+		
 	}
-
+	
 	return $client;
 }
 
@@ -199,13 +202,14 @@ sub startAt { 1 }
 sub resume { 1 }
 sub pauseForInterval { 1 }
 sub skipAhead { 1 }
+sub needsWeightedPlayPoint { 0 }
 
 sub connected {
 	my $client = shift;
 	return defined $client->tcpsock() ? 1 : 0;
 }
 
-# don't understand why this is never called (does it mean we are never master? but when single in a group, it should be then)
+# don't understand why this is never called, because it's used by the HTTP client of the real player?
 sub nextChunk {
 	$log->error("NEXT CHUNK CALLED");
 	my $chunk = Slim::Player::Source::nextChunk(@_);
@@ -220,29 +224,53 @@ sub songElapsedSeconds {
 sub play {
 	my $client = shift;
 	my $emptyChunk;
-	my $powerOn = $prefs->get('powerup');
-
-	# as nextChunk is never called, then we need this strange thing to empty the chunks
-	$emptyChunk	= sub {
-		my $client = shift;
-		@{$client->chunks} = ();
-		Slim::Utils::Timers::setTimer($client, Time::HiRes::time() + 0.5, $emptyChunk);
-	};
-
-	Slim::Utils::Timers::setTimer($client, Time::HiRes::time() + 0.5, $emptyChunk);
-
+	
+	$log->error("PLAYING ", $client, " ", $client->id, " ", $client->isPlaying);
+	
+	# Creating the sync group creates a stop that cannot be distinguished from a regular stop, and 
+	# then another start happens
+	Slim::Utils::Timers::killTimers($client, \&undoSync);
+	
+	my $needSync = 0;
 	my %groups = Plugins::Groups::Plugin::getGroups();
-	foreach my $member ( @{$groups{$client->id}->{'members'}} )
-	{
+	my $powerOn = $prefs->get('powerup');
+	
+	foreach my $member ( @{$groups{$client->id}->{'members'}} )	{
 		my $slave = Slim::Player::Client::getClient($member);
 		next unless $slave;
-		$log->debug("Synchronizing " . $slave->name() . " to " .  $client->name() . " Power " . $powerOn);
-		#do not use [execute]
 		$slave->power(1) if ($powerOn);
-		$client->execute( [ 'sync', $slave->id ] );
-	}
-
+		$needSync |= !$client->isSyncedWith($slave);
+	}	
+	
+	if ($needSync) {
+		$log->debug("re-sync needed"); 
+		
+		# cannot call that in play() as this causes a recursing problem
+		Slim::Utils::Timers::setTimer($client, Time::HiRes::time(), sub {
+					foreach my $member ( @{$groups{$client->id}->{'members'}} ) {
+						my $slave = Slim::Player::Client::getClient($member);
+						next unless $slave;
+				
+						$log->debug("sync " . $slave->name() . " to " .  $client->name() . " Power " . $powerOn);
+					
+						$client->controller()->sync($slave);
+					}
+				} );	
+	}			
+	
+	Slim::Utils::Timers::setTimer($client, Time::HiRes::time(), \&pollHandler);
+						
 	return 1;
+}
+
+sub undoSync {
+	my $client = shift;
+	
+	$log->debug("un-sync ", $client->id);
+	
+	foreach my $slave ($client->syncedWith()) {
+		$slave->controller()->unsync($slave);
+	}
 }
 
 #
@@ -253,14 +281,46 @@ sub pause {
 
 sub stop {
 	my $client = shift;
-
-	Slim::Utils::Timers::killTimers($client);
+	
+	$log->error("STOP ", $client->isPlaying, " ", $client->id);
+	
+	Slim::Utils::Timers::killTimers($client, \&pollHandler);
+		
+	# Cannot undo sync now as STOP might be called immediately after START due to
+	# sync creation. This timer will be killed by any PLAY request so that we do not
+	# undo the sync just after we created it
+	Slim::Utils::Timers::setTimer($client, Time::HiRes::time() + 5, \&undoSync);
 
 	$client->SUPER::stop();
 
-	foreach my $slave ($client->syncedWith()) {
-		$slave->execute( [ 'sync', '-' ] );
+}
+
+sub pollHandler {
+	my $client = shift;
+	
+	Slim::Utils::Timers::setTimer($client, Time::HiRes::time() + 1, \&pollHandler);
+	
+	# empty chunks regularly as there is no real player to use them
+	@{$client->chunks} = ();
+	
+	my $active = firstActive($client);
+	return unless $active;
+
+	# need to evaluate position + 2 as we only check every second
+	if ( $active->songElapsedSeconds() + 2 > $active->playingSong()->duration() - $active->playingSong()->startOffset() ) {
+		if ( $active->readyToStream() ) {
+			$client->controller()->playerStopped($client);
+		} else { 
+			$client->controller()->playerTrackStarted($client);
+		}	
 	}
+		
+	$client->controller()->playerStatusHeartbeat($client) if $client->isPlaying;
+}	
+
+sub playPoint {
+	my $active = firstActive($_[0]);
+	return $active ? $active->playPoint : undef;
 }
 
 sub power {
