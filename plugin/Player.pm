@@ -19,6 +19,8 @@ use Slim::Utils::Misc;
 use Slim::Utils::Network;
 use Slim::Utils::Prefs;
 
+use Plugins::Groups::StreamingController;
+
 use Data::Dumper;
 
 my $prefs = preferences('plugin.groups');
@@ -55,7 +57,7 @@ sub new {
 		macaddress              => undef,
 		paddr                   => $paddr,
 		udpsock                 => undef,
-		tcpsock                 => 1,				# connected at creation
+		tcpsock                 => undef,
 
 		# ir / knob state
 		ircodes                 => undef,
@@ -187,6 +189,8 @@ sub new {
 		
 	}
 	
+	sub undoSync($client);
+			
 	return $client;
 }
 
@@ -203,11 +207,7 @@ sub resume { 1 }
 sub pauseForInterval { 1 }
 sub skipAhead { 1 }
 sub needsWeightedPlayPoint { 0 }
-
-sub connected {
-	my $client = shift;
-	return defined $client->tcpsock() ? 1 : 0;
-}
+sub connected { 1 }
 
 # don't understand why this is never called, because it's used by the HTTP client of the real player?
 sub nextChunk {
@@ -241,16 +241,16 @@ sub play {
 		$slave->power(1) if ($powerOn);
 		$needSync |= !$client->isSyncedWith($slave);
 	}	
-	
+		
 	if ($needSync) {
 		$log->debug("re-sync needed"); 
 		
 		# cannot call that in play() as this causes a recursing problem
-		Slim::Utils::Timers::setTimer($client, Time::HiRes::time(), sub {
+		Slim::Utils::Timers::setTimer($client, Time::HiRes::time() + 1, sub {
 					foreach my $member ( @{$groups{$client->id}->{'members'}} ) {
 						my $slave = Slim::Player::Client::getClient($member);
 						next unless $slave;
-				
+										
 						$log->debug("sync " . $slave->name() . " to " .  $client->name() . " Power " . $powerOn);
 					
 						$client->controller()->sync($slave);
@@ -302,20 +302,6 @@ sub pollHandler {
 	
 	# empty chunks regularly as there is no real player to use them
 	@{$client->chunks} = ();
-	
-	my $active = firstActive($client);
-	return unless $active;
-
-	# need to evaluate position + 2 as we only check every second
-	if ( $active->songElapsedSeconds() + 2 > $active->playingSong()->duration() - $active->playingSong()->startOffset() ) {
-		if ( $active->readyToStream() ) {
-			$client->controller()->playerStopped($client);
-		} else { 
-			$client->controller()->playerTrackStarted($client);
-		}	
-	}
-		
-	$client->controller()->playerStatusHeartbeat($client) if $client->isPlaying;
 }	
 
 sub playPoint {
