@@ -16,75 +16,93 @@ use base qw(Slim::Player::StreamingController);
 
 use Slim::Utils::Log;
 use Slim::Utils::Prefs;
+use Data::Dumper;
 
 my $prefs = preferences('plugin.groups');
 my $log   = logger('plugin.groups');
 
 sub new {
-	my ($class, $self) = @_;
-
-	$log->info("NEW controller $self");
+	my ($class, $client) = @_;
 	
-	bless $self, $class;
-	
-	return $self;
+	return $class->SUPER::new($client);
 }
 
-
-sub _isSurrogate {
-	my $client = shift;
-	my $master = $client->master;
-	
-	return 0 if $master->model !~ m/group/;
-	
-	my $controller = $master->controller;
-	my $idx = $master->controller()->{'players'}->[0] == $master ? 1 : 0;
-
-=comment	
-	foreach my $player (@{$master->controller()->{'players'}}) {
-		$log->info("$player");
-	}
-=cut	
-	
-	my $res = $client == $master->controller()->{'players'}->[$idx] ? 1 : 0;
-	
-	$log->info("SURROGATE $client for $master") if $res;
-			
-	return $res;
-}
+# playerBufferReady does not need to be surrogated as it is not filtered only for mast
 
 sub playerTrackStarted {
 	my ($self, $client) = @_;
-	my $master = $client->master;
-			
+	my $surrogate = _Surrogate($self);
+				
 	$log->info("PLAYERTRACKSTARTED $client");
-	$master->controller->SUPER::playerTrackStarted($master) if _isSurrogate($client);
-	$self->SUPER::playerTrackStarted($client);
+	# send started on behalf of master
+	$self->SUPER::playerTrackStarted($client->master) if $client == $surrogate;
+	
+	return $self->SUPER::playerTrackStarted($client);
 }
 
 sub playerStatusHeartbeat {
 	my ($self, $client) = @_;
-	my $master = $client->master;
+	my $surrogate = _Surrogate($self);
 		
-	$log->info("PLAYERSTATUSHEARTBEAT $client");
-	$master->controller->SUPER::playerStatusHeartbeat($master) if _isSurrogate($client);
-	$self->SUPER::playerStatusHeartbeat($client);
-}
-
-sub unsync {
-	my ($self, $player, $keepSyncGroupId) = @_;
+	#$log->info("PLAYERSTATUSHEARTBEAT $client");
 	
-	$log->info("UNSYNC $player");		
-	$self->SUPER::unsync($player, $keepSyncGroupId);
+	# empty chunks regularly as there is no real player to use them
+	@{$client->master->chunks} = ();
+	
+	# send heartbeat on behalf of master
+	$self->SUPER::playerStatusHeartbeat($client->master) if $client == $surrogate;
+	
+	return $self->SUPER::playerStatusHeartbeat($client);
 }
 
 sub playerStopped {
 	my ($self, $client) = @_;
-	my $master = $client->master;
+	my $surrogate = _Surrogate($self);
 		
-	$log->info("PLAYERSTOPPED $client");		
-	$master->controller->SUPER::playerStopped($master) if _isSurrogate($client);
+	$log->info("PLAYERSTOPPED $client");
+	# send stop on behalf of master
+	$self->SUPER::playerStopped($client->master) if $client == $surrogate;
+	
 	$self->SUPER::playerStopped($client);
+}
+
+sub play {
+	my $self = shift;
+	
+	$log->info("PLAY INTERCEPTION $self");
+	# TODO : how to re-start a group when just one player quit?
+	$self->master->doSync if $self->master->isa("Plugins::Groups::Player");
+	return $self->SUPER::play(@_);
+}	
+
+sub stop {
+	my $self = shift;
+	
+	$log->info("STOP INTERCEPTION $self");
+	$self->master->undoSync if $self->master->isa("Plugins::Groups::Player");
+	return $self->SUPER::stop(@_);
+}	
+	
+=comment
+sub unsync {
+	my ($self, $player, $keepSyncGroupId) = @_;
+	
+	$log->info("UNSYNC $self $player");		
+	return $self->SUPER::unsync($player, $keepSyncGroupId);
+}
+
+sub sync {
+	my ($self, $player, $restart) = @_;
+	
+	$log->info("SYNCING $self $player");		
+	return $self->SUPER::sync($player, $restart);
+}
+=cut
+
+sub _Surrogate {
+	my $self = shift;
+	my @activePlayers = $self->activePlayers;
+	return $activePlayers[1];
 }
 
 

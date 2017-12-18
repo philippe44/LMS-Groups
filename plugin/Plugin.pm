@@ -9,6 +9,9 @@ use Slim::Utils::Strings qw (string);
 use Slim::Utils::Misc;
 use Slim::Utils::Log;
 use Slim::Utils::Prefs;
+use Slim::Player::StreamingController;
+
+use Data::Dumper;
 
 use Plugins::Groups::Settings;
 use Plugins::Groups::StreamingController;
@@ -56,11 +59,6 @@ sub initPlugin {
 		$log->info("creating player " . $groups{$id}->{'name'});
 		createPlayer( $id, $groups{$id}->{'name'} );
 	}
-	
-	# Subscribe to player connect/disconnect messages
-    Slim::Control::Request::subscribe( \&playerAdd,
-        [ ['client'], [ 'new' ] ] );
-					
 }
 
 sub playerAdd {

@@ -28,8 +28,6 @@ my $log   = logger('plugin.groups');
 
 sub new {
 	my ($class, $id, $paddr, $rev, $s, $deviceid, $uuid) = @_;
-
-	#my $client = $class->SUPER::new;
 	my $client = Slim::Utils::Accessor::new($class);
 
 	main::INFOLOG && logger('network.protocol')->info("New client connected: $id");
@@ -182,15 +180,13 @@ sub new {
 
 	$Slim::Player::Client::clientHash{$id} = $client;
 
-	$client->controller(Slim::Player::StreamingController->new($client));
-
+	$client->controller(Plugins::Groups::StreamingController->new($client));
+	
 	if (!main::SCANNER) {
 		Slim::Control::Request::notifyFromArray($client, ['client', 'new']);
 		
 	}
 	
-	sub undoSync($client);
-			
 	return $client;
 }
 
@@ -209,58 +205,32 @@ sub skipAhead { 1 }
 sub needsWeightedPlayPoint { 0 }
 sub connected { 1 }
 
-# don't understand why this is never called, because it's used by the HTTP client of the real player?
-sub nextChunk {
-	$log->error("NEXT CHUNK CALLED");
-	my $chunk = Slim::Player::Source::nextChunk(@_);
-	@{$_[0]->chunks} = ();
-}
-
 sub songElapsedSeconds {
-	my $active = firstActive($_[0]);
-	return $active->songElapsedSeconds if $active;
+	my $surrogate = _Surrogate($_[0]);
+	return $surrogate->songElapsedSeconds;
 }
 
 sub play {
-	my $client = shift;
-	my $emptyChunk;
+	return 1;
+	my $count = scalar $_[0]->syncedWith;
+	$log->error("Group player has no slave players") if !$count;
+	return $count ? 1 : 0;
+}
+
+sub doSync {
+	my ($client) = @_;
 	
-	$log->error("PLAYING ", $client, " ", $client->id, " ", $client->isPlaying);
-	
-	# Creating the sync group creates a stop that cannot be distinguished from a regular stop, and 
-	# then another start happens
-	Slim::Utils::Timers::killTimers($client, \&undoSync);
-	
-	my $needSync = 0;
+	my $needSync = 1;
 	my %groups = Plugins::Groups::Plugin::getGroups();
-	my $powerOn = $prefs->get('powerup');
-	
-	foreach my $member ( @{$groups{$client->id}->{'members'}} )	{
+		
+	foreach my $member ( @{$groups{$client->id}->{'members'}} ) {
 		my $slave = Slim::Player::Client::getClient($member);
 		next unless $slave;
-		$slave->power(1) if ($powerOn);
-		$needSync |= !$client->isSyncedWith($slave);
-	}	
-		
-	if ($needSync) {
-		$log->debug("re-sync needed"); 
-		
-		# cannot call that in play() as this causes a recursing problem
-		Slim::Utils::Timers::setTimer($client, Time::HiRes::time() + 1, sub {
-					foreach my $member ( @{$groups{$client->id}->{'members'}} ) {
-						my $slave = Slim::Player::Client::getClient($member);
-						next unless $slave;
 										
-						$log->debug("sync " . $slave->name() . " to " .  $client->name() . " Power " . $powerOn);
-					
-						$client->controller()->sync($slave);
-					}
-				} );	
-	}			
-	
-	Slim::Utils::Timers::setTimer($client, Time::HiRes::time(), \&pollHandler);
-						
-	return 1;
+		$log->debug("sync ", $slave->name, " to ", $client->name);
+				
+		$client->controller()->sync($slave);
+	}
 }
 
 sub undoSync {
@@ -269,131 +239,73 @@ sub undoSync {
 	$log->debug("un-sync ", $client->id);
 	
 	foreach my $slave ($client->syncedWith()) {
+		$log->debug("unsync ", $slave->name, " from ", $client->name);
 		$slave->controller()->unsync($slave);
 	}
 }
 
-#
-# pause
-#
 sub pause {
 }
 
 sub stop {
 	my $client = shift;
-	
-	$log->error("STOP ", $client->isPlaying, " ", $client->id);
-	
-	Slim::Utils::Timers::killTimers($client, \&pollHandler);
-		
-	# Cannot undo sync now as STOP might be called immediately after START due to
-	# sync creation. This timer will be killed by any PLAY request so that we do not
-	# undo the sync just after we created it
-	Slim::Utils::Timers::setTimer($client, Time::HiRes::time() + 5, \&undoSync);
-
 	$client->SUPER::stop();
-
 }
 
-sub pollHandler {
-	my $client = shift;
-	
-	Slim::Utils::Timers::setTimer($client, Time::HiRes::time() + 1, \&pollHandler);
-	
-	# empty chunks regularly as there is no real player to use them
-	@{$client->chunks} = ();
-}	
-
 sub playPoint {
-	my $active = firstActive($_[0]);
-	return $active ? $active->playPoint : undef;
+	my $surrogate = _Surrogate($_[0]);
+	return $surrogate->controller->{'players'}->[1]->playPoint;
 }
 
 sub power {
 	my $client = shift;
 	my $on     = shift;
 	my $noplay = shift;
-
-	my $currOn = $prefs->client($client)->get('power') || 0;
-
-	return $currOn unless defined $on;
-	return unless (!defined(Slim::Buttons::Common::mode($client)) || ($currOn != $on));
-
-	my $resume = $prefs->client($client)->get('powerOnResume');
-	$resume =~ /(.*)Off-(.*)On/;
-	my ($resumeOff, $resumeOn) = ($1,$2);
-
-	my $controller = $client->controller();
-
-	if (!$on) {
-		# turning player off - unsync/pause/stop player and move to off mode
-		my $playing = $controller->isPlaying(1);
-		$prefs->client($client)->set('playingAtPowerOff', $playing);
-
-		if ($playing && ($resumeOff eq 'Pause')) {
-			# Pause client mid track
-			$client->execute(["pause", 1, undef, 1]);
-		} elsif ($controller->isPaused() && ($resumeOff eq 'Pause')) {
-			# already paused, do nothing
-		} else {
-			$client->execute(["stop"]);
-		}
-
-		# Do now, not earlier so that playmode changes still work
-		$prefs->client($client)->set('power', $on); # Do now, not earlier so that
-
-	} else {
-
-		$prefs->client($client)->set('power', $on);
-
-		$controller->playerActive($client);
-
-		if (!$controller->isPlaying() && !$noplay) {
-
-			if ($resumeOn =~ /Reset/) {
-				# reset playlist to start, but don't start the playback yet
-				$client->execute(["playlist","jump", 0, 1, 1]);
-			}
-
-			if ($resumeOn =~ /Play/ && Slim::Player::Playlist::song($client)
-				&& $prefs->client($client)->get('playingAtPowerOff')) {
-				$client->execute(["play"]); # will resume if paused
-			}
-		}
-	}
-
-	# all players in group have synced power
-	foreach my $slave ($client->syncedWith()) {
-		# do not use [execute] otherwise this creates an infinite loop
-		$slave->power($on) if $prefs->get('powerup');
+	
+	return $client->SUPER::power unless defined $on;
+			
+	# do normal stuff
+	$client->SUPER::power($on, $noplay);
+			
+	return if !$prefs->client($client)->get('syncPower');
+	
+	my %groups = Plugins::Groups::Plugin::getGroups();
+	
+	$log->debug("powering all memebrs $on");
+	
+	# power on all connected members
+	foreach my $member ( @{$groups{$client->id}->{'members'}} )	{
+		my $slave = Slim::Player::Client::getClient($member);
+		next unless $slave;
+		$slave->power($on, $noplay)
 	}
 }
 
+sub fade_volume { 1 }
+	
 sub volume {
 	my $client = shift;
 	my $newVolume = shift;
+	my $isTemp = shift;
 
-	if (defined $newVolume) {
+	if (defined $newVolume && !$isTemp) {
 		my $oldVolume = $client->SUPER::volume();
+		
+		$log->debug("volume change $oldVolume $newVolume ");
 
 		foreach my $slave ($client->syncedWith()) {
 			my $slaveVolume = $slave->volume();
 			$slave->volume($oldVolume ? $slaveVolume*$newVolume/$oldVolume  : $newVolume);
-		}
+		}	
 	}
 
-	return $client->SUPER::volume($newVolume, @_);
+	return $client->SUPER::volume($newVolume, $isTemp);
 }
 
-sub firstActive {
+sub _Surrogate {
 	my $client = shift;
-
-	foreach my $slave ($client->syncedWith()) {
-		return $slave unless !$slave->power;
-	}
-
-	return undef;
+	my @activePlayers = $client->controller->activePlayers;
+	return $activePlayers[1];
 }
-
 
 1;
