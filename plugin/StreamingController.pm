@@ -34,6 +34,7 @@ sub playerTrackStarted {
 	my $surrogate = _Surrogate($self);
 				
 	$log->info("PLAYERTRACKSTARTED $client");
+	
 	# send started on behalf of master
 	$self->SUPER::playerTrackStarted($client->master) if $client == $surrogate;
 	
@@ -60,8 +61,12 @@ sub playerStopped {
 	my $surrogate = _Surrogate($self);
 		
 	$log->info("PLAYERSTOPPED $client");
+	
 	# send stop on behalf of master
-	$self->SUPER::playerStopped($client->master) if $client == $surrogate;
+	if ($client == $surrogate) {
+		$self->SUPER::playerStopped($client->master) if $client == $surrogate;
+		$self->master->undoSync;		
+	}
 	
 	$self->SUPER::playerStopped($client);
 }
@@ -69,7 +74,8 @@ sub playerStopped {
 sub play {
 	my $self = shift;
 	
-	$log->info("PLAY INTERCEPTION $self");
+	$log->info("PLAY $self");
+	
 	# TODO : how to re-start a group when just one player quit?
 	$self->master->doSync if $self->master->isa("Plugins::Groups::Player");
 	return $self->SUPER::play(@_);
@@ -78,11 +84,12 @@ sub play {
 sub stop {
 	my $self = shift;
 	
-	$log->info("STOP INTERCEPTION $self");
+	$log->info("STOP $self");
+	
 	$self->master->undoSync if $self->master->isa("Plugins::Groups::Player");
 	return $self->SUPER::stop(@_);
 }	
-	
+
 =comment
 sub unsync {
 	my ($self, $player, $keepSyncGroupId) = @_;

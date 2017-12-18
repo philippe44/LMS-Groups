@@ -207,11 +207,11 @@ sub connected { 1 }
 
 sub songElapsedSeconds {
 	my $surrogate = _Surrogate($_[0]);
-	return $surrogate->songElapsedSeconds;
+	return $surrogate ? $surrogate->songElapsedSeconds : undef;
 }
 
 sub play {
-	return 1;
+	# return 1;
 	my $count = scalar $_[0]->syncedWith;
 	$log->error("Group player has no slave players") if !$count;
 	return $count ? 1 : 0;
@@ -254,7 +254,7 @@ sub stop {
 
 sub playPoint {
 	my $surrogate = _Surrogate($_[0]);
-	return $surrogate->controller->{'players'}->[1]->playPoint;
+	return $surrogate ? $surrogate->controller->{'players'}->[1]->playPoint : undef;
 }
 
 sub power {
