@@ -11,8 +11,6 @@ use Slim::Utils::Log;
 use Slim::Utils::Prefs;
 use Slim::Player::StreamingController;
 
-use Data::Dumper;
-
 use Plugins::Groups::Settings;
 use Plugins::Groups::StreamingController;
 
@@ -24,16 +22,17 @@ my $log = Slim::Utils::Log->addLogCategory({
 	'description' => 'PLUGIN_GROUPS_NAME'
 });
 
-sub getDisplayName() {
-	return 'PLUGIN_GROUPS_NAME';
-}
-
 my $prefs = preferences('plugin.groups');
+my $serverPrefs = preferences('server');
 
 $prefs->init({
 	lastID => int ( rand(2**32) ),
-	powerup => 1,
+	restoreStatic => 1,
 });
+
+sub getDisplayName() {
+	return 'PLUGIN_GROUPS_NAME';
+}
 
 sub getGroups {
 	return %groups;
@@ -73,7 +72,7 @@ sub createPlayer {
 	my $s =  sockaddr_in(10000, inet_aton("127.1"));
 
 	# $id, $paddr, $rev, $s, $deviceid, $uuid
-	my $client = Plugins::Groups::Player->new($id, $s, 0, undef, 12, undef);
+	my $client = Plugins::Groups::Player->new($id, $s, 1.0, undef, 12, undef);
 	my $display_class = 'Slim::Display::NoDisplay';
 
 	Slim::bootstrap::tryModuleLoad($display_class);
@@ -87,15 +86,25 @@ sub createPlayer {
 	$client->macaddress($id);
 	$client->name($name);
 	$client->init('group', 'codecs=mp3,flc,wma,ogg,pcm,aac', undef);
-	$prefs->client($client)->set('syncPower', 0);
+
+	Slim::Utils::Prefs::Client->new($serverPrefs, $id, 'no-migrate');
+		
+	$log->info("create group player $client");
 }
 
 sub delPlayer {
 	my $client = Slim::Player::Client::getClient($_[0]);
 
 	$client->tcpsock(undef);
+	$client->disconnected(1);
+	$client->forgetClient;
+	
 	Slim::Control::Request::notifyFromArray($client, ['client', 'disconnect']);
-	# Slim::Control::Request::executeRequest($client, ['client', 'forget']);
+	Slim::Utils::Timers::setTimer( $client,	Time::HiRes::time() + 30, sub {
+				Slim::Control::Request::executeRequest($client, ['client', 'forget']);					
+				} );
+	
+	$log->info("delete group player $client");
 }
 
 

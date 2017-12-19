@@ -16,14 +16,12 @@ use base qw(Slim::Player::StreamingController);
 
 use Slim::Utils::Log;
 use Slim::Utils::Prefs;
-use Data::Dumper;
 
 my $prefs = preferences('plugin.groups');
 my $log   = logger('plugin.groups');
 
 sub new {
 	my ($class, $client) = @_;
-	
 	return $class->SUPER::new($client);
 }
 
@@ -33,7 +31,7 @@ sub playerTrackStarted {
 	my ($self, $client) = @_;
 	my $surrogate = _Surrogate($self);
 				
-	$log->info("PLAYERTRACKSTARTED $client");
+	$log->info("track started $client");
 	
 	# send started on behalf of master
 	$self->SUPER::playerTrackStarted($client->master) if $client == $surrogate;
@@ -45,7 +43,7 @@ sub playerStatusHeartbeat {
 	my ($self, $client) = @_;
 	my $surrogate = _Surrogate($self);
 		
-	#$log->info("PLAYERSTATUSHEARTBEAT $client");
+	$log->debug("status heartbeat $client");
 	
 	# empty chunks regularly as there is no real player to use them
 	@{$client->master->chunks} = ();
@@ -60,12 +58,12 @@ sub playerStopped {
 	my ($self, $client) = @_;
 	my $surrogate = _Surrogate($self);
 		
-	$log->info("PLAYERSTOPPED $client");
+	$log->info("track ended $client");
 	
 	# send stop on behalf of master
 	if ($client == $surrogate) {
 		$self->SUPER::playerStopped($client->master) if $client == $surrogate;
-		$self->master->undoSync;		
+		$self->master->undoSync(0);		
 	}
 	
 	$self->SUPER::playerStopped($client);
@@ -74,9 +72,8 @@ sub playerStopped {
 sub play {
 	my $self = shift;
 	
-	$log->info("PLAY $self");
+	$log->info("play request $self");
 	
-	# TODO : how to re-start a group when just one player quit?
 	$self->master->doSync if $self->master->isa("Plugins::Groups::Player");
 	return $self->SUPER::play(@_);
 }	
@@ -84,9 +81,14 @@ sub play {
 sub stop {
 	my $self = shift;
 	
-	$log->info("STOP $self");
+	$log->info("stop request $self");
 	
-	$self->master->undoSync if $self->master->isa("Plugins::Groups::Player");
+	# TODO : when a player quits because it's assigned to another group/virtual player
+	# it's just an unsync happening so the former virtual player continues. But when 
+	# a single player is ask to play something else, it will then stop the controller and the
+	# virtual player (whole group) stops. Not sure there is a way to differentiate that the 
+	# stop came from a individual player and not from the master
+	$self->master->undoSync(1) if $self->master->isa("Plugins::Groups::Player");
 	return $self->SUPER::stop(@_);
 }	
 
@@ -94,15 +96,15 @@ sub stop {
 sub unsync {
 	my ($self, $player, $keepSyncGroupId) = @_;
 	
-	$log->info("UNSYNC $self $player");		
-	return $self->SUPER::unsync($player, $keepSyncGroupId);
-}
-
-sub sync {
-	my ($self, $player, $restart) = @_;
+	# if we are here, we are trying to sync a virtual player but we only get here if the
+	# user did that while the group was playing. Otherwise, the group has no slaves so this
+	# method will even not be called - so far, there is no way to prevent this madness
+	if ( $player->isa("Plugins::Groups::Player") ) {
+		$log->error("DO NOT SYNCHRONIZE PLAYER GROUP ", $player->name);
+		return;
+	}
 	
-	$log->info("SYNCING $self $player");		
-	return $self->SUPER::sync($player, $restart);
+	return $self->SUPER::unsync($player, $keepSyncGroupId);
 }
 =cut
 

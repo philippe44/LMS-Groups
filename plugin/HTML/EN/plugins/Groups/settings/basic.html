@@ -1,20 +1,30 @@
 [% PROCESS settings/header.html %]
 	[% FOREACH gid IN groups.keys %]
 		[% WRAPPER setting title=groups.$gid.name desc="" %]
+			[% SET count = 0 %]
+			<table>
 			[% FOREACH player IN players %]
 				[% SET pid = player.id %]
+				[% IF count == 0 %] <tr> [% END %]
 				[% SET found = 0 %]
 				[% FOREACH item IN groups.$gid.members %]
 					[% IF item == pid %] [% found = 1 %] [% END %]
 				[% END %]
-				<input type="checkbox" name="members.[% gid %].[% pid %]" id="members.[% gid %].[% pid %]" [% IF found %] checked [% END %] value="1" />
+				<td><input type="checkbox" name="members.[% gid %].[% pid %]" id="members.[% gid %].[% pid %]" [% IF found %] checked [% END %] value="1" />
 				<!--
 				can't get grep vmethod to work
 				<input type="checkbox" name="members.[% gid %].[% pid %]" id="members.[% gid %].[% pid %]" [% IF $groups.$gid.members.grep($pid) %] checked [% END %] value="1" />
 				-->
 				[% player.name %]
-				&nbsp;&nbsp;
+				&nbsp;&nbsp; </td>
+				[% count = count + 1 %]
+				[% IF count == 3 %] [% count = 0 %]	</tr> [% END %]
 			[% END %]
+			</table>
+		[% END %]
+		[% WRAPPER setting title="PLUGIN_GROUPS_SYNC" desc="PLUGIN_GROUPS_SYNC_DESC" %]
+			<input type="checkbox" name="syncpower.[% gid %]" id="syncpower" [% IF groups.$gid.syncPower %] checked [% END %] value="1"/>&nbsp[% "PLUGIN_GROUPS_SYNCPOWER" | string %]&nbsp&nbsp 
+			<input type="checkbox" name="syncvolume.[% gid %]" id="syncvolume" [% IF groups.$gid.syncVolume %] checked [% END %] value="1" />&nbsp[% "PLUGIN_GROUPS_SYNCVOLUME" | string %] 
 		[% END %]
 		[% WRAPPER setting title="PLUGIN_GROUPS_DELETEGROUP" desc="PLUGIN_GROUPS_DELETEGROUP_DESC" %]
 			<input type="checkbox" name="delete.[% gid %]" id="delete.[% gid %]" value="[% gid %]" />
@@ -22,9 +32,9 @@
 		<hr>
 	[% END %]
 
-	[% WRAPPER setting title="PLUGIN_GROUPS_POWERUP" desc="PLUGIN_GROUPS_POWERUP_DESC" %]
-		<input type="checkbox" name="pref_powerup" id="pref_powerup" [% IF prefs.powerup == 1%] checked="checked" [% END %] value="1" />
-	[% END %]
+	[% WRAPPER setting title="PLUGIN_GROUPS_RESTORESTATIC" desc="PLUGIN_GROUPS_RESTORESTATIC_DESC" %]
+		<input type="checkbox" name="pref_restoreStatic" id="pref_restoreStatic" [% IF prefs.pref_restoreStatic %] checked [% END %] value="1" />
+	[% END %]	
 	[% WRAPPER setting title="PLUGIN_GROUPS_NEWGROUP" desc="PLUGIN_GROUPS_NEWGROUP_DESC" %]
 		<input type="text" class="stdedit" name="newGroupName" id="newGroupName" value="[% newGroupName %]" size="20" />
 	[% END %]

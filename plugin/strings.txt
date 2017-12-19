@@ -8,13 +8,14 @@ PLUGIN_GROUPS_STARTING
 	EN	Starting Player Groups
 	
 PLUGIN_GROUPS_NEWGROUP
-	EN	Add a new Group player
+	EN	Add a new Group Player
 	
 PLUGIN_GROUPS_NEWGROUP_NAME
 	EN	New Group name
 	
 PLUGIN_GROUPS_NEWGROUP_DESC
-	EN	Enter the name of the new Group Player set, and press Apply to create it. Then edit the player set in the area above to get the details correct.
+	EN	Enter the name of the new Group Player set, and press Apply to create it. Then edit the player set 
+	EN	in the area above to get the details correct.
 	
 PLUGIN_GROUPS_DELETEGROUP
 	EN	Delete this Group player
@@ -22,10 +23,25 @@ PLUGIN_GROUPS_DELETEGROUP
 PLUGIN_GROUPS_DELETEGROUP_DESC
 	EN	Check this box and press Apply to permanently delete this Group player
 	
-PLUGIN_GROUPS_POWERUP
-	EN	Power on players when starting to play
+PLUGIN_GROUPS_SYNC
+	EN	Synchronization options
 	
-PLUGIN_GROUPS_POWERUP_DESC
-	EN	Check this to power on all players when starting to play on the Group.
+PLUGIN_GROUPS_SYNC_DESC
+	EN	Sets how changes on Group Player affects members
+	EN	<br> - power on/off members alltogether
+	EN	<br> - volume change on Group Player adjust members proportionally
+
+PLUGIN_GROUPS_SYNCPOWER
+	EN	Power on/off
 	
-	
+PLUGIN_GROUPS_SYNCVOLUME
+	EN	Volume
+
+PLUGIN_GROUPS_RESTORESTATIC
+	EN	Restore static groups at stop
+
+PLUGIN_GROUPS_RESTORESTATIC_DESC
+	EN	When a Group Player stops, members that belongsto a static LMS group can be re-associated to that 
+	EN	group. They will not resume playing what's current on that static group, but at next track they will
+	EN	restart
+
