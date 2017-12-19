@@ -1,5 +1,25 @@
 [% PROCESS settings/header.html %]
+
+	[% WRAPPER setting title="PLUGIN_GROUPS_RESTORESTATIC" desc="PLUGIN_GROUPS_RESTORESTATIC_DESC" %]
+		<input type="checkbox" name="pref_restoreStatic" id="pref_restoreStatic" [% IF prefs.pref_restoreStatic %] checked [% END %] value="1" />
+	[% END %]	
+	
+	[% WRAPPER setting title="PLUGIN_GROUPS_NEWGROUP" desc="PLUGIN_GROUPS_NEWGROUP_DESC" %]
+		<input type="text" class="stdedit" name="newGroupName" id="newGroupName" value="[% newGroupName %]" size="20" />
+	[% END %]
+	
 	[% FOREACH gid IN groups.keys %]
+		<hr>
+		
+		[% WRAPPER setting title="PLUGIN_GROUPS_SYNC" desc="PLUGIN_GROUPS_SYNC_DESC" %]
+			<input type="checkbox" name="syncpower.[% gid %]" id="syncpower" [% IF groups.$gid.syncPower %] checked [% END %] value="1"/>&nbsp[% "PLUGIN_GROUPS_SYNCPOWER" | string %]&nbsp&nbsp 
+			<input type="checkbox" name="syncvolume.[% gid %]" id="syncvolume" [% IF groups.$gid.syncVolume %] checked [% END %] value="1" />&nbsp[% "PLUGIN_GROUPS_SYNCVOLUME" | string %] 
+		[% END %]
+		
+		[% WRAPPER setting title="PLUGIN_GROUPS_DELETEGROUP" desc="PLUGIN_GROUPS_DELETEGROUP_DESC" %]
+			<input type="checkbox" name="delete.[% gid %]" id="delete.[% gid %]" value="[% gid %]" />
+		[% END %]
+		
 		[% WRAPPER setting title=groups.$gid.name desc="" %]
 			[% SET count = 0 %]
 			<table>
@@ -22,20 +42,6 @@
 			[% END %]
 			</table>
 		[% END %]
-		[% WRAPPER setting title="PLUGIN_GROUPS_SYNC" desc="PLUGIN_GROUPS_SYNC_DESC" %]
-			<input type="checkbox" name="syncpower.[% gid %]" id="syncpower" [% IF groups.$gid.syncPower %] checked [% END %] value="1"/>&nbsp[% "PLUGIN_GROUPS_SYNCPOWER" | string %]&nbsp&nbsp 
-			<input type="checkbox" name="syncvolume.[% gid %]" id="syncvolume" [% IF groups.$gid.syncVolume %] checked [% END %] value="1" />&nbsp[% "PLUGIN_GROUPS_SYNCVOLUME" | string %] 
-		[% END %]
-		[% WRAPPER setting title="PLUGIN_GROUPS_DELETEGROUP" desc="PLUGIN_GROUPS_DELETEGROUP_DESC" %]
-			<input type="checkbox" name="delete.[% gid %]" id="delete.[% gid %]" value="[% gid %]" />
-		[% END %]
-		<hr>
 	[% END %]
-
-	[% WRAPPER setting title="PLUGIN_GROUPS_RESTORESTATIC" desc="PLUGIN_GROUPS_RESTORESTATIC_DESC" %]
-		<input type="checkbox" name="pref_restoreStatic" id="pref_restoreStatic" [% IF prefs.pref_restoreStatic %] checked [% END %] value="1" />
-	[% END %]	
-	[% WRAPPER setting title="PLUGIN_GROUPS_NEWGROUP" desc="PLUGIN_GROUPS_NEWGROUP_DESC" %]
-		<input type="text" class="stdedit" name="newGroupName" id="newGroupName" value="[% newGroupName %]" size="20" />
-	[% END %]
+	
 [% PROCESS settings/footer.html %]

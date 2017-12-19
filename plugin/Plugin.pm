@@ -97,11 +97,10 @@ sub delPlayer {
 
 	$client->tcpsock(undef);
 	$client->disconnected(1);
-	$client->forgetClient;
-	
+		
 	Slim::Control::Request::notifyFromArray($client, ['client', 'disconnect']);
-	Slim::Utils::Timers::setTimer( $client,	Time::HiRes::time() + 30, sub {
-				Slim::Control::Request::executeRequest($client, ['client', 'forget']);					
+	Slim::Utils::Timers::setTimer( $client,	Time::HiRes::time() + 5, sub {
+				$client->forgetClient;
 				} );
 	
 	$log->info("delete group player $client");
