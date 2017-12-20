@@ -1,3 +1,6 @@
+0.1.4
+ - break up groups at pause
+ 
 0.1.3
  - fake mac address creattion changes, make it stateless and compatible with earlier Perl version
  - German & French translations

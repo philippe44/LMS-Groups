@@ -1,18 +1,18 @@
 <?xml version='1.0' standalone='yes'?>
 <extensions>
+  <description>PLUGIN_GROUPS_DESC</description>
+  <optionsURL>plugins/Groups/settings/basic.html</optionsURL>
+  <name>PLUGIN_GROUPS_NAME</name>
+  <version>0.1.4</version>
+  <defaultState>enabled</defaultState>
+  <type>2</type>
+  <module>Plugins::Groups::Plugin</module>
+  <id></id>
   <targetApplication>
+    <id>SqueezeCenter</id>
     <maxVersion>*</maxVersion>
     <minVersion>7.7</minVersion>
-    <id>SqueezeCenter</id>
   </targetApplication>
-  <name>PLUGIN_GROUPS_NAME</name>
-  <optionsURL>plugins/Groups/settings/basic.html</optionsURL>
-  <module>Plugins::Groups::Plugin</module>
-  <email>philippe_44@outlook</email>
-  <description>PLUGIN_GROUPS_DESC</description>
-  <type>2</type>
   <creator>philippe_44</creator>
-  <version>0.1.3</version>
-  <defaultState>enabled</defaultState>
-  <id></id>
+  <email>philippe_44@outlook</email>
 </extensions>
