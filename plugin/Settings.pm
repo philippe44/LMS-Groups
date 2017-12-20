@@ -76,11 +76,15 @@ sub handler {
 
 sub addGroup {
 	my ($name) = @_;
-	my $lastID = $prefs->get('lastID') + 1;
 
-	$prefs->set('lastID', $lastID);
-
-	my $id = sprintf("10:10:%02hhx:%02hhx:%02hhx:%02hhx", $lastID >> 24, $lastID >> 16, $lastID >> 8, $lastID);
+	my $id;
+	
+	my $genMAC = sub {
+		sprintf("10:10:%02x:%02x:%02x:%02x", int(rand(255)), int(rand(255)), int(rand(255)), int(rand(255)));
+	};
+	
+	# generate MAC address and verify it doesn't exist yet
+	while ( $groups{$id = $genMAC->()} ) {};
 
 	$groups{$id}->{'name'} = $name;
 	$groups{$id}->{'syncPower'} = 1;
