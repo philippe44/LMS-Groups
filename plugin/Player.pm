@@ -95,6 +95,11 @@ sub songElapsedSeconds {
 	return $surrogate ? $surrogate->songElapsedSeconds : undef;
 }
 
+sub rebuffer {
+	my $client = shift;
+	$client->bufferReady(1);
+}
+
 sub play {
 	my $client = shift;
 	my $count = scalar $client->syncedWith;
