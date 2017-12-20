@@ -18,9 +18,9 @@ use Slim::Utils::Log;
 use Slim::Utils::Misc;
 use Slim::Utils::Network;
 use Slim::Utils::Prefs;
-use Data::Dumper;
 
 use Plugins::Groups::StreamingController;
+use Plugins::Groups::Plugin qw(%groups);
 
 our $defaultPrefs = {
 	'maxBitrate'		 => 0,
@@ -60,7 +60,7 @@ sub new {
 	$client->bufferSize(128*1204);	
 	
 	$client->controller(Plugins::Groups::StreamingController->new($client));
-		
+	
 	return $client;
 }
 
@@ -78,7 +78,7 @@ sub init {
 	}
 	$serverPrefs->client($client)->remove('syncgroupid');
 	
-	$client->SUPER::init(@_);
+	return $client->SUPER::init(@_);
 }
 
 sub initPrefs {
@@ -120,7 +120,6 @@ sub play {
 
 sub doSync {
 	my ($client) = @_;
-	my %groups = Plugins::Groups::Plugin::getGroups();
 	
 	foreach my $member ( @{$groups{$client->id}->{'members'}} ) {
 		my $slave = Slim::Player::Client::getClient($member);
@@ -181,8 +180,6 @@ sub power {
 	# do normal stuff
 	$client->SUPER::power($on, $noplay);
 	
-	my %groups = Plugins::Groups::Plugin::getGroups();
-						
 	return if !$groups{$client->id}->{'syncPower'};
 	
 	$log->info("powering $on all members for ", $client->name);
@@ -200,8 +197,7 @@ sub volume {
 	my $client = shift;
 	my $newVolume = shift;
 	my $isTemp = shift;
-	my %groups = Plugins::Groups::Plugin::getGroups();
-	
+		
 	$log->debug("volume for $client $newVolume $isTemp");
 	
 	if ( defined $newVolume && !$isTemp && $groups{$client->id}->{'syncVolume'} ) {

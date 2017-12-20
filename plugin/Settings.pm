@@ -7,9 +7,8 @@ use Slim::Utils::Strings qw (string);
 use Slim::Utils::Misc;
 use Slim::Utils::Log;
 use Slim::Utils::Prefs;
-use Plugins::Groups::Plugin;
+use Plugins::Groups::Plugin qw(%groups);
 use Plugins::Groups::Player;
-use Data::Dumper;
 
 my $prefs = preferences('plugin.groups');
 my $log   = logger('plugin.groups');
@@ -29,10 +28,9 @@ sub prefs {
 
 sub handler {
 	my ($class, $client, $params) = @_;
-	my %groups = Plugins::Groups::Plugin::getGroups();
-
+	
 	$log->debug("Groups::Settings->handler() called.");
-
+	
 	if ($params->{'saveSettings'}) {
 
 		foreach my $id (keys %groups) {
@@ -58,12 +56,12 @@ sub handler {
 		}
 		
 		if ((defined $params->{'newGroupName'}) && ($params->{'newGroupName'} ne '')) {
-			my $id = addGroup(\%groups, $params->{'newGroupName'});
+			my $id = addGroup($params->{'newGroupName'});
 			$log->info("Adding $params->{'newGroupName'} $id");
 			Plugins::Groups::Plugin::createPlayer($id, $params->{'newGroupName'});
 		}
 
-		Plugins::Groups::Plugin::setGroups(%groups);
+		$prefs->set('groups', \%groups);
 
 	}
 
@@ -77,16 +75,16 @@ sub handler {
 }
 
 sub addGroup {
-	my ($groups, $name) = @_;
+	my ($name) = @_;
 	my $lastID = $prefs->get('lastID') + 1;
 
 	$prefs->set('lastID', $lastID);
 
 	my $id = sprintf("10:10:%02hhx:%02hhx:%02hhx:%02hhx", $lastID >> 24, $lastID >> 16, $lastID >> 8, $lastID);
 
-	$groups->{$id}->{'name'} = $name;
-	$groups->{$id}->{'syncPower'} = 1;
-	$groups->{$id}->{'syncVolume'} = 1;
+	$groups{$id}->{'name'} = $name;
+	$groups{$id}->{'syncPower'} = 1;
+	$groups{$id}->{'syncVolume'} = 1;
 	
 	return $id;
 }
