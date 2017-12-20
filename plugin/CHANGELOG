@@ -1,0 +1,2 @@
+0.1.2
+ - rebufferring can be caused by other players and call to rebuffer did reset bufferReady
