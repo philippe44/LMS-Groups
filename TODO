@@ -19,3 +19,5 @@ sub getClient {
 
 	return($ret);
 }
+
+add $client in stop
