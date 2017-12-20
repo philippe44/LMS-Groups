@@ -1,2 +1,6 @@
+0.1.3
+ - fake mac address creattion changes, make it stateless and compatible with earlier Perl version
+ - German & French translations
+ 
 0.1.2
  - rebufferring can be caused by other players and call to rebuffer did reset bufferReady
