@@ -28,7 +28,6 @@ my $prefs = preferences('plugin.groups');
 my $serverPrefs = preferences('server');
 
 $prefs->init({
-	lastID => int ( rand(2**32) ),
 	restoreStatic => 1,
 });
 
