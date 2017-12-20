@@ -18,7 +18,7 @@ PLUGIN_GROUPS_NEWGROUP_DESC
 	EN	in the area above to get the details correct.
 	
 PLUGIN_GROUPS_DELETEGROUP
-	EN	Delete this Group player
+	EN	Delete
 	
 PLUGIN_GROUPS_DELETEGROUP_DESC
 	EN	Check this box and press Apply to permanently delete this Group player

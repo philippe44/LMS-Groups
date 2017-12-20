@@ -1,4 +1,11 @@
 [% PROCESS settings/header.html %]
+	<!--
+	<head>
+	<style>
+		table, th, td {	border: 1px solid black; }
+	</style>
+	</head>
+	-->
 
 	[% WRAPPER setting title="PLUGIN_GROUPS_RESTORESTATIC" desc="PLUGIN_GROUPS_RESTORESTATIC_DESC" %]
 		<input type="checkbox" name="pref_restoreStatic" id="pref_restoreStatic" [% IF prefs.pref_restoreStatic %] checked [% END %] value="1" />
@@ -11,18 +18,18 @@
 	[% FOREACH gid IN groups.keys %]
 		<hr>
 		
+		[% WRAPPER setting title=groups.$gid.name desc="PLUGIN_GROUPS_DELETEGROUP_DESC" %]
+			<input type="checkbox" name="delete.[% gid %]" id="delete.[% gid %]" value="[% gid %]" />&nbsp[% "PLUGIN_GROUPS_DELETEGROUP" | string %]
+		[% END %]
+		
 		[% WRAPPER setting title="PLUGIN_GROUPS_SYNC" desc="PLUGIN_GROUPS_SYNC_DESC" %]
 			<input type="checkbox" name="syncpower.[% gid %]" id="syncpower" [% IF groups.$gid.syncPower %] checked [% END %] value="1"/>&nbsp[% "PLUGIN_GROUPS_SYNCPOWER" | string %]&nbsp&nbsp 
 			<input type="checkbox" name="syncvolume.[% gid %]" id="syncvolume" [% IF groups.$gid.syncVolume %] checked [% END %] value="1" />&nbsp[% "PLUGIN_GROUPS_SYNCVOLUME" | string %] 
 		[% END %]
 		
-		[% WRAPPER setting title="PLUGIN_GROUPS_DELETEGROUP" desc="PLUGIN_GROUPS_DELETEGROUP_DESC" %]
-			<input type="checkbox" name="delete.[% gid %]" id="delete.[% gid %]" value="[% gid %]" />
-		[% END %]
-		
-		[% WRAPPER setting title=groups.$gid.name desc="" %]
+		[% WRAPPER settingSection %]
 			[% SET count = 0 %]
-			<table>
+			<table frame=box>
 			[% FOREACH player IN players %]
 				[% SET pid = player.id %]
 				[% IF count == 0 %] <tr> [% END %]
@@ -38,10 +45,11 @@
 				[% player.name %]
 				&nbsp;&nbsp; </td>
 				[% count = count + 1 %]
-				[% IF count == 3 %] [% count = 0 %]	</tr> [% END %]
+				[% IF count == 4 %] [% count = 0 %]	</tr> [% END %]
 			[% END %]
 			</table>
 		[% END %]
+						
 	[% END %]
 	
 [% PROCESS settings/footer.html %]
