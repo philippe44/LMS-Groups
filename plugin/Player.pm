@@ -18,8 +18,13 @@ use Slim::Utils::Log;
 use Slim::Utils::Misc;
 use Slim::Utils::Network;
 use Slim::Utils::Prefs;
+use Data::Dumper;
 
 use Plugins::Groups::StreamingController;
+
+our $defaultPrefs = {
+	'maxBitrate'		 => 0,
+};	
 
 my $prefs = preferences('plugin.groups');
 my $serverPrefs = preferences('server');
@@ -27,8 +32,14 @@ my $log   = logger('plugin.groups');
 
 sub model { "group" }
 sub modelName { "Group" }
+sub formats { qw(wma ogg flc aif pcm mp3) }
+sub maxSupportedSamplerate { 192000 }
+sub maxTreble { 50 }
+sub minTreble { 50 }
+sub maxBass { 50 }
+sub minBass { 50 }
+
 sub opened { return undef }
-sub formats { return qw(wma ogg flc aif pcm mp3) }
 sub bufferFullness { 100000 }
 sub bytesReceived { 100000 }
 sub signalStrength { 100 }
@@ -37,8 +48,9 @@ sub resume { 1 }
 sub pauseForInterval { 1 }
 sub skipAhead { 1 }
 sub needsWeightedPlayPoint { 0 }
-sub connected { 1 }
 sub fade_volume { 1 }
+sub connected { $_[0]->tcpsock }
+# sub ipport { '127.0.0.1:0' }
 
 sub new {
 	my ($class, $id, $paddr, $rev, $s, $deviceid, $uuid) = @_;
@@ -50,6 +62,32 @@ sub new {
 	$client->controller(Plugins::Groups::StreamingController->new($client));
 		
 	return $client;
+}
+
+sub init {
+	my $client = shift;
+	my $syncGroupId = $serverPrefs->client($client)->get('syncgroupid');
+		
+	# make sure we are not synchronized with anybody and try to get rid of dynamic group
+	# if any, might not work if all players are not already connected. It's just a corner
+	# case when restarting the server, at least we'll never be slave of a group
+	foreach my $other (Slim::Player::Client::clients()) {
+		next if $other == $client;
+		my $otherMasterId = $serverPrefs->client($other)->get('syncgroupid');
+		$other->controller->unsync($other) if $otherMasterId && ($otherMasterId eq $syncGroupId);
+	}
+	$serverPrefs->client($client)->remove('syncgroupid');
+	
+	$client->SUPER::init(@_);
+}
+
+sub initPrefs {
+	my $client = shift;
+
+	# make sure any preferences unique to this client may not have set are set to the default
+	$serverPrefs->client($client)->init($defaultPrefs);
+
+	$client->SUPER::initPrefs();
 }
 
 sub songElapsedSeconds {
@@ -153,7 +191,8 @@ sub power {
 	foreach my $member ( @{$groups{$client->id}->{'members'}} )	{
 		my $slave = Slim::Player::Client::getClient($member);
 		next unless $slave;
-		$slave->power($on, $noplay)
+		# $slave->power($on, $noplay)
+		Slim::Control::Request::executeRequest($slave, ['power', $on, $noplay]);
 	}
 }
 
@@ -162,18 +201,23 @@ sub volume {
 	my $newVolume = shift;
 	my $isTemp = shift;
 	my %groups = Plugins::Groups::Plugin::getGroups();
-
+	
+	$log->debug("volume for $client $newVolume $isTemp");
+	
 	if ( defined $newVolume && !$isTemp && $groups{$client->id}->{'syncVolume'} ) {
 		my $oldVolume = $client->SUPER::volume();
 		
 		$log->info("volume change $oldVolume $newVolume for ", $client->name);
 
 		foreach my $slave ($client->syncedWith()) {
-			my $slaveVolume = $slave->volume();
-			$slave->volume($oldVolume ? $slaveVolume*$newVolume/$oldVolume  : $newVolume);
+			my $slaveVolume = $serverPrefs->client($slave)->get('volume');
+			$slaveVolume = $oldVolume ? $slaveVolume*$newVolume/$oldVolume  : $newVolume;
+			$log->debug("volume for $slave $slaveVolume");
+			# $slave->volume($slaveVolume);
+			Slim::Control::Request::executeRequest($slave, ['mixer', 'volume', $slaveVolume]);
 		}	
 	}
-
+	
 	return $client->SUPER::volume($newVolume, $isTemp);
 }
 

@@ -60,16 +60,10 @@ sub initPlugin {
 	}
 }
 
-sub playerAdd {
-    my $client  = shift->client;
-	my $controller = Plugins::Groups::StreamingController->new($client->controller());
-	
-	$client->controller($controller);
-}	
-
 sub createPlayer {
 	my ($id, $name) = @_;
-	my $s =  sockaddr_in(10000, inet_aton("127.1"));
+	# need to have a fake socket because getClient does not call ipport() in an OoO way
+	my $s =  sockaddr_in(0, INADDR_LOOPBACK);
 
 	# $id, $paddr, $rev, $s, $deviceid, $uuid
 	my $client = Plugins::Groups::Player->new($id, $s, 1.0, undef, 12, undef);
@@ -85,9 +79,8 @@ sub createPlayer {
 	$client->display( $display_class->new($client) );
 	$client->macaddress($id);
 	$client->name($name);
-	$client->init('group', 'codecs=mp3,flc,wma,ogg,pcm,aac', undef);
-
-	Slim::Utils::Prefs::Client->new($serverPrefs, $id, 'no-migrate');
+	$client->tcpsock(1);
+	$client->init;
 		
 	$log->info("create group player $client");
 }
@@ -100,7 +93,8 @@ sub delPlayer {
 		
 	Slim::Control::Request::notifyFromArray($client, ['client', 'disconnect']);
 	Slim::Utils::Timers::setTimer( $client,	Time::HiRes::time() + 5, sub {
-				$client->forgetClient;
+				# $client->forgetClient;
+				Slim::Control::Request::executeRequest($client, ['client', 'forget']);
 				} );
 	
 	$log->info("delete group player $client");
