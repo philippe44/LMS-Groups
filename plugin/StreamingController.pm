@@ -17,6 +17,13 @@ use base qw(Slim::Player::StreamingController);
 use Slim::Utils::Log;
 use Slim::Utils::Prefs;
 
+use constant TRACK_END	=> 0x0000;
+use constant USER_STOP 	=> 0x0001;
+use constant USER_PAUSE => 0x0002;
+
+use Exporter qw(import);
+our @EXPORT_OK = qw(TRACK_END USER_STOP USER_PAUSE);
+
 my $prefs = preferences('plugin.groups');
 my $log   = logger('plugin.groups');
 
@@ -63,7 +70,7 @@ sub playerStopped {
 	# send stop on behalf of master
 	if ($client == $surrogate) {
 		$self->SUPER::playerStopped($client->master) if $client == $surrogate;
-		$self->master->undoSync(0);		
+		$self->master->undoSync(TRACK_END);		
 	}
 	
 	$self->SUPER::playerStopped($client);
@@ -88,8 +95,32 @@ sub stop {
 	# a single player is ask to play something else, it will then stop the controller and the
 	# virtual player (whole group) stops. Not sure there is a way to differentiate that the 
 	# stop came from a individual player and not from the master
-	$self->master->undoSync(1) if $self->master->isa("Plugins::Groups::Player");
+	$self->master->undoSync(USER_STOP) if $self->master->isa("Plugins::Groups::Player");
 	return $self->SUPER::stop(@_);
+}	
+
+
+sub resume {
+	my $self = shift;
+	
+	$log->info("resume request $self");
+	
+	$self->master->doSync if $self->master->isa("Plugins::Groups::Player");
+	return $self->SUPER::resume(@_);
+}	
+
+sub pause {
+	my $self = shift;
+	
+	$log->info("pause request $self");
+	
+	# TODO : when a player quits because it's assigned to another group/virtual player
+	# it's just an unsync happening so the former virtual player continues. But when 
+	# a single player is ask to play something else, it will then stop the controller and the
+	# virtual player (whole group) stops. Not sure there is a way to differentiate that the 
+	# stop came from a individual player and not from the master
+	$self->master->undoSync(USER_PAUSE) if $self->master->isa("Plugins::Groups::Player");
+	return $self->SUPER::pause(@_);
 }	
 
 =comment

@@ -11,7 +11,7 @@ use Slim::Utils::Log;
 use Slim::Utils::Prefs;
 use Slim::Player::StreamingController;
 
-use Plugins::Groups::StreamingController;
+use Plugins::Groups::StreamingController qw(TRACK_END USER_STOP USER_PAUSE);
 
 use Exporter qw(import);
 our @EXPORT_OK = qw(%groups);

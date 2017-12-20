@@ -1,42 +1,42 @@
 PLUGIN_GROUPS_NAME
 	DE	Player-Gruppen
 	EN	Player Groups
-	FR	Lecteurs GroupÃ©s
+	FR	Lecteurs Groupés
 	
 PLUGIN_GROUPS_DESC
 	DE	Gruppe erstellen
 	EN	Create Player Groups
-	FR	CrÃ©ation de Lecteurs GroupÃ©s
+	FR	Création de Lecteurs Groupés
 	
 PLUGIN_GROUPS_STARTING
 	DE	Starte Gruppen
 	EN	Starting Player Groups
-	FR	DÃ©marrage des Lecteurs GroupÃ©s
+	FR	Démarrage des Lecteurs Groupés
 	
 PLUGIN_GROUPS_NEWGROUP
-	DE	Neue Gruppe hinzufÃ¼gen
+	DE	Neue Gruppe hinzufügen
 	EN	Add a new Group Player
-	FR	Ajouter un Lecteur GroupÃ©
+	FR	Ajouter un Lecteur Groupé
 	
 PLUGIN_GROUPS_NEWGROUP_NAME
 	DE	Neuer Gruppen-Name
 	EN	New Group name
-	FR	Nom du Lecteur GroupÃ©
+	FR	Nom du Lecteur Groupé
 	
 PLUGIN_GROUPS_NEWGROUP_DESC
-	DE	Gib den neuen Namen ein und bestÃ¤tige durch DrÃ¼cken von "Anwenden". Dann bearbeite die Player-Details oben.
+	DE	Gib den neuen Namen ein und bestätige durch Drücken von "Anwenden". Dann bearbeite die Player-Details oben.
 	EN	Enter the name of the new Group Player set, and press Apply to create it. Then edit the player set in the area above to get the details correct.
-	FR	Entrez le nom du Lecteur GroupÃ© et cliquez sur Appliquer. Editez ensuite le lecteur dans la zone ci-dessus pour ajouter des membres
+	FR	Entrez le nom du Lecteur Groupé et cliquez sur Appliquer. Editez ensuite le lecteur dans la zone ci-dessus pour ajouter des membres
 	
 PLUGIN_GROUPS_DELETEGROUP
-	DE	LÃ¶schen
+	DE	Löschen
 	EN	Delete
 	FR	Supprimer
 	
 PLUGIN_GROUPS_DELETEGROUP_DESC
-	DE	Kreuze diese Checkbox an um die Gruppe definitiv zu lÃ¶schen.
+	DE	Kreuze diese Checkbox an um die Gruppe definitiv zu löschen.
 	EN	Check this box and press Apply to permanently delete this Group player
-	FR	Cliquez ici puis sur Appliquer pour dÃ©truire le Lecteur GroupÃ©
+	FR	Cliquez ici puis sur Appliquer pour détruire le Lecteur Groupé
 	
 PLUGIN_GROUPS_SYNC
 	DE	Synchronisations-Einstellungen
@@ -44,28 +44,28 @@ PLUGIN_GROUPS_SYNC
 	FR	Options de synchronisation
 	
 PLUGIN_GROUPS_SYNC_DESC
-	DE	Steuert, wie Ã„nderungen an der Gruppe die Player beeinflusst: <br> - Player miteinander ein/ausschalten <br> - LautstÃ¤rke der Player einer Gruppe zusammen steuern
+	DE	Steuert, wie Änderungen an der Gruppe die Player beeinflusst: <br> - Player miteinander ein/ausschalten <br> - Lautstärke der Player einer Gruppe zusammen steuern
 	EN	Sets how changes on Group Player affects members <br> - power on/off members alltogether <br> - volume change on Group Player adjust members proportionally
-	FR	DÃ©finit la faÃ§on dont un changement sur un Lecteur GroupÃ© affecte les membres <br> - Allume/Eteint tous les membres <br> - Change le volume des membres proportionellement 
+	FR	Définit la façon dont un changement sur un Lecteur Groupé affecte les membres <br> - Allume/Eteint tous les membres <br> - Change le volume des membres proportionellement 
 
 PLUGIN_GROUPS_SYNCPOWER
 	DE	Ein/Ausschalten
 	EN	Power on/off
-	FR	AllumÃ©/Eteint
+	FR	Allumé/Eteint
 	
 PLUGIN_GROUPS_SYNCVOLUME
-	DE	LautstÃ¤rke
+	DE	Lautstärke
 	EN	Volume
 	FR	Volume
 
 PLUGIN_GROUPS_RESTORESTATIC
 	DE	Gruppen beim Ausschalten wieder herstellen
 	EN	Restore static groups at stop
-	FR	RÃ©tablit les groupes prÃ©-existants
+	FR	Rétablit les groupes pré-existants
 
 PLUGIN_GROUPS_RESTORESTATIC_DESC
 	EN	When a Group Player stops, members that belong to a static LMS group can be re-associated to that 
 	EN	group. They will not resume playing what's current on that static group, but at next track they will
 	EN	restart
-	FR	Lorsqu'un Lecteur GroupÃ© s'arrÃªte, les membres qui appartenaient auparavant Ã  un groupe permanent peuvent Ãªtre rÃ©-affectÃ©s Ã  celui-ci. Ils ne recommenceront Ã  jouer qu'u dÃ©but de la piste suivante
+	FR	Lorsqu'un Lecteur Groupé s'arrête, les membres qui appartenaient auparavant à un groupe permanent peuvent être ré-affectés à celui-ci. Ils ne recommenceront à jouer qu'u début de la piste suivante
 

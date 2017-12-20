@@ -19,7 +19,7 @@ use Slim::Utils::Misc;
 use Slim::Utils::Network;
 use Slim::Utils::Prefs;
 
-use Plugins::Groups::StreamingController;
+use Plugins::Groups::StreamingController qw(TRACK_END USER_STOP USER_PAUSE);;
 use Plugins::Groups::Plugin qw(%groups);
 
 our $defaultPrefs = {
@@ -140,7 +140,7 @@ sub doSync {
 }
 
 sub undoSync {
-	my ($client, $userStop) = @_;
+	my ($client, $kind) = @_;
 	
 	foreach my $slave ($client->syncedWith()) {
 		$log->info("undo group sync for ", $slave->name, " from ", $client->name);
@@ -150,7 +150,7 @@ sub undoSync {
 		$serverPrefs->client($slave)->remove('groups.syncgroupid');
 		
 		# if this player belonged to a static group, restore it
-		if ( $syncGroupId && $prefs->get('restoreStatic') ) {
+		if ( $syncGroupId && $prefs->get('restoreStatic') && $kind != USER_PAUSE) {
 			$log->info("restore static group $syncGroupId for ", $slave->name);
 			
 			$serverPrefs->client($slave)->set('syncgroupid', $syncGroupId);
