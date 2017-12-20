@@ -1,47 +1,57 @@
 PLUGIN_GROUPS_NAME
+	DE	Player-Gruppen
 	EN	Player Groups
 	
 PLUGIN_GROUPS_DESC
+	DE	Gruppe erstellen
 	EN	Create Player Groups
 	
 PLUGIN_GROUPS_STARTING
+	DE	Starte Gruppen
 	EN	Starting Player Groups
 	
 PLUGIN_GROUPS_NEWGROUP
+	DE	Neue Gruppe hinzufügen
 	EN	Add a new Group Player
 	
 PLUGIN_GROUPS_NEWGROUP_NAME
+	DE	Neuer Gruppen-Name
 	EN	New Group name
 	
 PLUGIN_GROUPS_NEWGROUP_DESC
-	EN	Enter the name of the new Group Player set, and press Apply to create it. Then edit the player set 
-	EN	in the area above to get the details correct.
+	DE	Gib den neuen Namen ein und bestätige durch Drücken von "Anwenden". Dann bearbeite die Player-Details oben.
+	EN	Enter the name of the new Group Player set, and press Apply to create it. Then edit the player set in the area above to get the details correct.
 	
 PLUGIN_GROUPS_DELETEGROUP
+	DE	Löschen
 	EN	Delete
 	
 PLUGIN_GROUPS_DELETEGROUP_DESC
+	DE	Kreuze diese Checkbox an um die Gruppe definitiv zu löschen.
 	EN	Check this box and press Apply to permanently delete this Group player
 	
 PLUGIN_GROUPS_SYNC
+	DE	Synchronisations-Einstellungen
 	EN	Synchronization options
 	
 PLUGIN_GROUPS_SYNC_DESC
-	EN	Sets how changes on Group Player affects members
-	EN	<br> - power on/off members alltogether
-	EN	<br> - volume change on Group Player adjust members proportionally
+	DE	Steuert, wie Änderungen an der Gruppe die Player beeinflusst: <br> - Player miteinander ein/ausschalten <br> - Lautstärke der Player einer Gruppe zusammen steuern
+	EN	Sets how changes on Group Player affects members <br> - power on/off members alltogether <br> - volume change on Group Player adjust members proportionally
 
 PLUGIN_GROUPS_SYNCPOWER
+	DE	Ein/Ausschalten
 	EN	Power on/off
 	
 PLUGIN_GROUPS_SYNCVOLUME
+	DE	Lautstärke
 	EN	Volume
 
 PLUGIN_GROUPS_RESTORESTATIC
+	DE	Gruppen beim Ausschalten wieder herstellen
 	EN	Restore static groups at stop
 
 PLUGIN_GROUPS_RESTORESTATIC_DESC
-	EN	When a Group Player stops, members that belongsto a static LMS group can be re-associated to that 
+	EN	When a Group Player stops, members that belong to a static LMS group can be re-associated to that 
 	EN	group. They will not resume playing what's current on that static group, but at next track they will
 	EN	restart
 
