@@ -216,7 +216,6 @@ sub _cliGroup {
 	
 	my $group = $groups{$client->id};
 	
-	warn Data::Dump::dump($group);
 #	$request->addResult('id', $client->id);
 	$request->addResult('name', $group->{name});
 	$request->addResult('syncPower', $group->{syncPower});
@@ -227,8 +226,8 @@ sub _cliGroup {
 	
 	foreach my $player ( @{$group->{members} || []} ) {
 		$request->addResultLoop($loopname, $chunkCount, 'id', $player);
-		
-		if ( my $client = Slim::Player::Client::getClient($clientparam) ) {
+
+		if ( my $client = Slim::Player::Client::getClient($player) ) {
 			$request->addResultLoop($loopname, $chunkCount, 'playername', $client->name);
 		}		
 		$chunkCount++;
