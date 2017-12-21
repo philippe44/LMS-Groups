@@ -81,7 +81,7 @@ sub play {
 	
 	$log->info("play request $self");
 
-	# be carefull if we have beign synched manually with a normal player
+	# be careful if we have been synched manually with a normal player
 	$self->master->doSync if $self->master->isa("Plugins::Groups::Player");
 	return $self->SUPER::play(@_);
 }	
@@ -92,7 +92,6 @@ sub stop {
 	
 	$log->info("stop request $self $client");
 	
-	# be carefull if we have being synched manually with a normal player
 	return $self->SUPER::stop(@_) unless $self->master->isa("Plugins::Groups::Player");
 	
 	# when a slave stops on its own, do not stop the whole group, instead 

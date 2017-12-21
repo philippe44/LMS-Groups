@@ -15,6 +15,7 @@ use Plugins::Groups::StreamingController qw(TRACK_END USER_STOP USER_PAUSE);
 
 # override default Slim::Player::Source::playmode()
 use Plugins::Groups::Source;
+# override default Slim::Player::Playlist::stopAndClear()
 use Plugins::Groups::Playlist;
 
 use Exporter qw(import);
