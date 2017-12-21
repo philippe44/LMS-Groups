@@ -22,13 +22,17 @@ use Slim::Utils::Prefs;
 use Plugins::Groups::StreamingController qw(TRACK_END USER_STOP USER_PAUSE);;
 use Plugins::Groups::Plugin qw(%groups);
 
-our $defaultPrefs = {
-	'maxBitrate'		 => 0,
-};	
-
 my $prefs = preferences('plugin.groups');
 my $serverPrefs = preferences('server');
 my $log   = logger('plugin.groups');
+
+{
+	__PACKAGE__->mk_accessor('rw', '_volumeDispatching');
+}
+
+our $defaultPrefs = {
+	'maxBitrate'		 => 0,
+};	
 
 sub model { "group" }
 sub modelName { "Group" }
@@ -55,6 +59,10 @@ sub connected { $_[0]->tcpsock }
 sub new {
 	my ($class, $id, $paddr, $rev, $s, $deviceid, $uuid) = @_;
 	my $client = $class->SUPER::new($id, $paddr, $rev, $s, $deviceid, $uuid);
+	
+	$client->init_accessor(	
+		_volumeDispatching                  => 0,
+	);	
 	
 	$client->bufferReady(1);
 	$client->bufferSize(128*1204);	
@@ -142,7 +150,7 @@ sub doSync {
 sub undoSync {
 	my ($client, $kind) = @_;
 	
-	foreach my $slave ($client->syncedWith()) {
+	foreach my $slave ($client->syncedWith) {
 		$log->info("undo group sync for ", $slave->name, " from ", $client->name);
 		$slave->controller()->unsync($slave);
 		
@@ -196,30 +204,6 @@ sub power {
 		# $slave->power($on, $noplay)
 		Slim::Control::Request::executeRequest($slave, ['power', $on, $noplay]);
 	}
-}
-
-sub volume {
-	my $client = shift;
-	my $newVolume = shift;
-	my $isTemp = shift;
-		
-	$log->debug("volume for $client $newVolume $isTemp");
-	
-	if ( defined $newVolume && !$isTemp && $groups{$client->id}->{'syncVolume'} ) {
-		my $oldVolume = $client->SUPER::volume();
-		
-		$log->info("volume change $oldVolume $newVolume for ", $client->name);
-
-		foreach my $slave ($client->syncedWith()) {
-			my $slaveVolume = $serverPrefs->client($slave)->get('volume');
-			$slaveVolume = $oldVolume ? $slaveVolume*$newVolume/$oldVolume  : $newVolume;
-			$log->debug("volume for $slave $slaveVolume");
-			# $slave->volume($slaveVolume);
-			Slim::Control::Request::executeRequest($slave, ['mixer', 'volume', $slaveVolume]);
-		}	
-	}
-	
-	return $client->SUPER::volume($newVolume, $isTemp);
 }
 
 sub _Surrogate {
