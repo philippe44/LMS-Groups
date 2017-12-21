@@ -69,7 +69,7 @@ sub playerStopped {
 	
 	# send stop on behalf of master
 	if ($client == $surrogate) {
-		$self->SUPER::playerStopped($client->master) if $client == $surrogate;
+		$self->SUPER::playerStopped($client->master);
 		$self->master->undoSync(TRACK_END);		
 	}
 	
