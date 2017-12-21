@@ -47,6 +47,8 @@ sub initPlugin {
 		Plugins::Groups::Settings->new;
 	}	
 
+	$class->initCLI();
+
 	foreach my $id (keys %groups) {
 		$log->info("creating player " . $groups{$id}->{'name'});
 		createPlayer( $id, $groups{$id}->{'name'} );
@@ -93,5 +95,92 @@ sub delPlayer {
 	$log->info("delete group player $client");
 }
 
+sub initCLI {
+	#                                                            |requires Client
+	#                                                            |  |is a Query
+	#                                                            |  |  |has Tags
+	#                                                            |  |  |  |Function to call
+	#                                                            C  Q  T  F
+	Slim::Control::Request::addDispatch(['playergroups', '_index', '_quantity'],
+	                                                            [0, 1, 0, \&_cliGroups]
+	);
+
+	Slim::Control::Request::addDispatch(['playergroup'],        [1, 1, 0, \&_cliGroup]);
+}
+
+sub _cliGroups {
+	my $request = shift;
+
+	# check this is the correct query.
+	if ($request->isNotQuery([['playergroups']])) {
+		$request->setStatusBadDispatch();
+		return;
+	}
+	
+	my $index    = $request->getParam('_index') || 0;
+	my $quantity = $request->getParam('_quantity') || 10;
+
+	my @groups = sort keys %groups;
+	my $count = @groups;
+	
+	my ($valid, $start, $end) = $request->normalize(scalar($index), scalar($quantity), $count);
+	
+	$request->addResult('count', $count);
+		
+	my $loopname = 'groups_loop';
+	my $chunkCount = 0;
+	
+	foreach my $group ( @groups[$start .. $end] ) {
+		$request->addResultLoop($loopname, $chunkCount, 'id', $group);				
+		$request->addResultLoop($loopname, $chunkCount, 'name', $groups{$group}->{name});
+		$request->addResultLoop($loopname, $chunkCount, 'syncPower', $groups{$group}->{syncPower});
+		$request->addResultLoop($loopname, $chunkCount, 'syncVolume', $groups{$group}->{syncVolume});
+		$request->addResultLoop($loopname, $chunkCount, 'players', scalar @{$groups{$group}->{members} || []});
+		
+		$chunkCount++;
+	}
+
+	$request->setStatusDone();
+}
+
+sub _cliGroup {
+	my $request = shift;
+
+	# check this is the correct query.
+	if ($request->isNotQuery([['playergroup']])) {
+		$request->setStatusBadDispatch();
+		return;
+	}
+
+	my $client  = $request->client;
+	
+	if (!$client || $client->model ne 'group' || !$groups{$client->id}) {
+		$log->warn($client->id . ' is either not a group, or it does not exist') if $client;
+		$request->setStatusBadDispatch();
+		return;
+	}
+	
+	my $group = $groups{$client->id};
+	
+	warn Data::Dump::dump($group);
+#	$request->addResult('id', $client->id);
+	$request->addResult('name', $group->{name});
+	$request->addResult('syncPower', $group->{syncPower});
+	$request->addResult('syncVolume', $group->{syncVolume});
+	
+	my $loopname = 'players_loop';
+	my $chunkCount = 0;
+	
+	foreach my $player ( @{$group->{members} || []} ) {
+		$request->addResultLoop($loopname, $chunkCount, 'id', $player);
+		
+		if ( my $client = Slim::Player::Client::getClient($clientparam) ) {
+			$request->addResultLoop($loopname, $chunkCount, 'playername', $client->name);
+		}		
+		$chunkCount++;
+	}
+
+	$request->setStatusDone();
+}
 
 1;
