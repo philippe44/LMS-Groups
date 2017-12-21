@@ -1,17 +1,17 @@
 <?xml version='1.0' standalone='yes'?>
 <extensions>
-  <plugins>
-    <plugin name="Groups" minTarget="7.7" maxTarget="7.*" version="0.1.6">
-      <title lang="EN">Player Groups</title>
-      <email>philippe_44@outlook.com</email>
-      <creator>Philippe</creator>
-      <sha>e045a884a1af75acad746e932bb71d7dab782618</sha>
-      <link>http://github.com/philippe44/LMS-Groups</link>
-      <desc lang="EN">Virtual players for dynamic grouping</desc>
-      <url>http://downloads.sourceforge.net/project/lms-groups/dev/Groups-0.1.6.zip</url>
-    </plugin>
-  </plugins>
   <details>
     <title lang="EN">Philippe's Player Groups plugin - development</title>
   </details>
+  <plugins>
+    <plugin minTarget="7.7" maxTarget="7.*" name="Groups" version="0.1.6">
+      <sha>ee3940afcb4ff115b7e00b0b868b1ac67c2c1b43</sha>
+      <creator>Philippe</creator>
+      <title lang="EN">Player Groups</title>
+      <email>philippe_44@outlook.com</email>
+      <desc lang="EN">Virtual players for dynamic grouping</desc>
+      <url>http://downloads.sourceforge.net/project/lms-groups/dev/Groups-0.1.6.zip</url>
+      <link>http://github.com/philippe44/LMS-Groups</link>
+    </plugin>
+  </plugins>
 </extensions>
