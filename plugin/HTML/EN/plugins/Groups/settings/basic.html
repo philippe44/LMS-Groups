@@ -16,11 +16,11 @@
 		[% END %]
 		
 		[% WRAPPER setting title="PLUGIN_GROUPS_SYNC" desc="PLUGIN_GROUPS_SYNC_DESC" %]
-			<input type="checkbox" name="syncpower.[% gid %]" id="syncpower" [% IF groups.$gid.syncPower %] checked [% END %] value="1" class="stdedit"/>
-			<label for="syncpower">[% "PLUGIN_GROUPS_SYNCPOWER" | string %]</label>
+			<input type="checkbox" name="syncpower.[% gid %]" id="syncpower.[% gid %]" [% IF groups.$gid.syncPower %] checked [% END %] value="1" class="stdedit"/>
+			<label for="syncpower.[% gid %]">[% "PLUGIN_GROUPS_SYNCPOWER" | string %]</label>
 			<br> 
-			<input type="checkbox" name="syncvolume.[% gid %]" id="syncvolume" [% IF groups.$gid.syncVolume %] checked [% END %] value="1" class="stdedit"/>
-			<label for="syncvolume">[% "PLUGIN_GROUPS_SYNCVOLUME" | string %]</label>
+			<input type="checkbox" name="syncvolume.[% gid %]" id="syncvolume.[% gid %]" [% IF groups.$gid.syncVolume %] checked [% END %] value="1" class="stdedit"/>
+			<label for="syncvolume.[% gid %]">[% "PLUGIN_GROUPS_SYNCVOLUME" | string %]</label>
 		[% END %]
 		
 		[% WRAPPER setting title="PLAYERS" desc="" %]
