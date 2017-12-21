@@ -13,6 +13,10 @@ use Slim::Player::StreamingController;
 
 use Plugins::Groups::StreamingController qw(TRACK_END USER_STOP USER_PAUSE);
 
+# override default Slim::Player::Source::playmode()
+use Plugins::Groups::Source;
+use Plugins::Groups::Playlist;
+
 use Exporter qw(import);
 our @EXPORT_OK = qw(%groups);
 

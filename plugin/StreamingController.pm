@@ -80,25 +80,34 @@ sub play {
 	my $self = shift;
 	
 	$log->info("play request $self");
-	
+
+	# be carefull if we have beign synched manually with a normal player
 	$self->master->doSync if $self->master->isa("Plugins::Groups::Player");
 	return $self->SUPER::play(@_);
 }	
 
 sub stop {
 	my $self = shift;
+	my $client = shift;
 	
-	$log->info("stop request $self");
+	$log->info("stop request $self $client");
 	
-	# TODO : when a player quits because it's assigned to another group/virtual player
-	# it's just an unsync happening so the former virtual player continues. But when 
-	# a single player is ask to play something else, it will then stop the controller and the
-	# virtual player (whole group) stops. Not sure there is a way to differentiate that the 
-	# stop came from a individual player and not from the master
-	$self->master->undoSync(USER_STOP) if $self->master->isa("Plugins::Groups::Player");
-	return $self->SUPER::stop(@_);
+	# be carefull if we have being synched manually with a normal player
+	return $self->SUPER::stop(@_) unless $self->master->isa("Plugins::Groups::Player");
+	
+	# when a slave stops on its own, do not stop the whole group, instead 
+	# just unsync the slave to let the group continue, unless the slave is
+	# the only player in that group
+	if (defined $client && $client != $self->master && $self->activePlayers() > 2) {
+		$log->info("A slave $client stopped on its own from ", $self->master);
+		$self->unsync($client);
+		return undef;
+	} 
+	
+	# the master stopped, so undo the group and stops everything
+	$self->master->undoSync(USER_STOP);
+	return $self->SUPER::stop(@_)
 }	
-
 
 sub resume {
 	my $self = shift;
@@ -111,33 +120,13 @@ sub resume {
 
 sub pause {
 	my $self = shift;
+	my $client = shift;
 	
-	$log->info("pause request $self");
-	
-	# TODO : when a player quits because it's assigned to another group/virtual player
-	# it's just an unsync happening so the former virtual player continues. But when 
-	# a single player is ask to play something else, it will then stop the controller and the
-	# virtual player (whole group) stops. Not sure there is a way to differentiate that the 
-	# stop came from a individual player and not from the master
+	$log->info("pause request $self $client");
+		
 	$self->master->undoSync(USER_PAUSE) if $self->master->isa("Plugins::Groups::Player");
 	return $self->SUPER::pause(@_);
 }	
-
-=comment
-sub unsync {
-	my ($self, $player, $keepSyncGroupId) = @_;
-	
-	# if we are here, we are trying to sync a virtual player but we only get here if the
-	# user did that while the group was playing. Otherwise, the group has no slaves so this
-	# method will even not be called - so far, there is no way to prevent this madness
-	if ( $player->isa("Plugins::Groups::Player") ) {
-		$log->error("DO NOT SYNCHRONIZE PLAYER GROUP ", $player->name);
-		return;
-	}
-	
-	return $self->SUPER::unsync($player, $keepSyncGroupId);
-}
-=cut
 
 sub _Surrogate {
 	my $self = shift;

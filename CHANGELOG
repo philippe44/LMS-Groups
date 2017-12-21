@@ -1,3 +1,7 @@
+0.1.6
+ - clean setting page and allow clickable items (credit @mherger)
+ - when a slave is stopped "individiually", do not stop the virtual player, just unsync that slave
+  
 0.1.5
  - change volume management to match iPeng's logic
  - add CLI command (credit @mherger)
