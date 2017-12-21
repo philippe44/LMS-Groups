@@ -67,32 +67,32 @@ sub mixerVolumeCommand {
     my $client  = $request->client;
 	my $entity   = $request->getRequest(1);
 	my $newVolume = $request->getParam('_newvalue');
-		
-	return $originalVolumeHandler->($request) unless $client->controller->isa("Plugins::Groups::StreamingController") && $groups{$client->id}->{'syncVolume'};
-	
 	my $master = $client->controller->master;
+		
+	return $originalVolumeHandler->($request) unless $client->controller->isa("Plugins::Groups::StreamingController") &&
+													 $groups{$master->id}->{'syncVolume'} &&
+													 !$master->_volumeDispatching;
+
 	my @group  = $client->syncedWith;
 	my $oldVolume = $master->volume;
 	
+	# avoid recursing loop				
+	$master->_volumeDispatching(1);			
+	
 	$log->info("volume command $newVolume for $client with old volume $oldVolume (master = $master)");
 	
-	if ( $client == $master ) {
+	if ($client == $master) {
 		# when changing virtual player's volume, apply a ratio to all real players, unless the previous
 		# volume was zero, which means everybody has a fresh start
-						
-		# avoid recursing loop when changing slave's volume				
-		$master->_volumeDispatching(1);			
 		
 		foreach my $slave (@group) {
 			my $slaveVolume = $oldVolume ? $slave->volume * $newVolume / $oldVolume : $newVolume;
 			$log->debug("new volume for $slave $slaveVolume");
 			Slim::Control::Request::executeRequest($slave, ['mixer', 'volume', $slaveVolume]);
 		}	
-		
-		$master->_volumeDispatching(0);				
-	} elsif ( !$master->_volumeDispatching ) {
+	} else {
 		# when changing the volume of a slave, need to feed that back to the virtual player so that it
-		# displays an average - that will trigger a loop which should only happen once, if values match
+		# displays an average
 		
 		# take an average of the whole group, including ourselves but exclude virtual player
 		foreach my $player (@group) { 
@@ -105,10 +105,10 @@ sub mixerVolumeCommand {
 		$log->info("setting master volume from $client for $master at $newVolume");
 	
 		Slim::Control::Request::executeRequest($master, ['mixer', 'volume', $newVolume]) if $newVolume != $oldVolume;
-	} else {	
-		# just an echo of master's changes, ignore it
-		$log->debug("just dispatching volume to slaves");
-	}	
+	}
+	
+	# all dispatch done
+	$master->_volumeDispatching(0);	
 	
 	$originalVolumeHandler->($request);
 }
