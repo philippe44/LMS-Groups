@@ -1,12 +1,4 @@
 [% PROCESS settings/header.html %]
-	<!--
-	<head>
-	<style>
-		table, th, td {	border: 1px solid black; }
-	</style>
-	</head>
-	-->
-
 	[% WRAPPER setting title="PLUGIN_GROUPS_RESTORESTATIC" desc="PLUGIN_GROUPS_RESTORESTATIC_DESC" %]
 		<input type="checkbox" name="pref_restoreStatic" id="pref_restoreStatic" [% IF prefs.pref_restoreStatic %] checked [% END %] value="1" />
 	[% END %]	
@@ -19,33 +11,31 @@
 		<hr>
 		
 		[% WRAPPER setting title=groups.$gid.name desc="PLUGIN_GROUPS_DELETEGROUP_DESC" %]
-			<input type="checkbox" name="delete.[% gid %]" id="delete.[% gid %]" value="[% gid %]" />&nbsp[% "PLUGIN_GROUPS_DELETEGROUP" | string %]
+			<input type="checkbox" name="delete.[% gid %]" id="delete.[% gid %]" value="[% gid %]" />
+			<label for="delete.[% gid %]">[% "PLUGIN_GROUPS_DELETEGROUP" | string %]</label>
 		[% END %]
 		
 		[% WRAPPER setting title="PLUGIN_GROUPS_SYNC" desc="PLUGIN_GROUPS_SYNC_DESC" %]
-			<input type="checkbox" name="syncpower.[% gid %]" id="syncpower" [% IF groups.$gid.syncPower %] checked [% END %] value="1"/>&nbsp[% "PLUGIN_GROUPS_SYNCPOWER" | string %]&nbsp&nbsp 
-			<input type="checkbox" name="syncvolume.[% gid %]" id="syncvolume" [% IF groups.$gid.syncVolume %] checked [% END %] value="1" />&nbsp[% "PLUGIN_GROUPS_SYNCVOLUME" | string %] 
+			<input type="checkbox" name="syncpower.[% gid %]" id="syncpower" [% IF groups.$gid.syncPower %] checked [% END %] value="1" class="stdedit"/>
+			<label for="syncpower">[% "PLUGIN_GROUPS_SYNCPOWER" | string %]</label>
+			<br> 
+			<input type="checkbox" name="syncvolume.[% gid %]" id="syncvolume" [% IF groups.$gid.syncVolume %] checked [% END %] value="1" class="stdedit"/>
+			<label for="syncvolume">[% "PLUGIN_GROUPS_SYNCVOLUME" | string %]</label>
 		[% END %]
 		
-		[% WRAPPER settingSection %]
-			[% SET count = 0 %]
-			<table frame=box>
+		[% WRAPPER setting title="PLAYERS" desc="" %]
+			[% count = 0 %]
+			<table style="border-spacing:0">
 			[% FOREACH player IN players %]
-				[% SET pid = player.id %]
-				[% IF count == 0 %] <tr> [% END %]
-				[% SET found = 0 %]
-				[% FOREACH item IN groups.$gid.members %]
-					[% IF item == pid %] [% found = 1 %] [% END %]
-				[% END %]
-				<td><input type="checkbox" name="members.[% gid %].[% pid %]" id="members.[% gid %].[% pid %]" [% IF found %] checked [% END %] value="1" />
-				<!--
-				can't get grep vmethod to work
-				<input type="checkbox" name="members.[% gid %].[% pid %]" id="members.[% gid %].[% pid %]" [% IF $groups.$gid.members.grep($pid) %] checked [% END %] value="1" />
-				-->
-				[% player.name %]
-				&nbsp;&nbsp; </td>
+				[% pid = player.id %]
+				[% groupPlayerId = "members." _ gid _ "." _ pid %]
+				[% IF count % 4 == 0 %]<tr>[% END %]
+				<td style="padding: 0 10px 2px 0">
+					<input type="checkbox" name="[% groupPlayerId %]" id="members.[% gid %].[% pid %]" [% IF groups.$gid.members.grep(pid).size() %] checked [% END %] value="1" />
+					<label for="members.[% gid %].[% pid %]">[% player.name %]</label>
+				</td>
 				[% count = count + 1 %]
-				[% IF count == 4 %] [% count = 0 %]	</tr> [% END %]
+				[% IF count % 4 == 0 %]</tr>[% END %]
 			[% END %]
 			</table>
 		[% END %]
