@@ -8,6 +8,11 @@ PLUGIN_GROUPS_DESC
 	EN	Create Player Groups
 	FR	Création de Lecteurs Groupés
 	
+PLUGIN_GROUPS_MEMBERS
+	DE	Mitglieder
+	EN	Members
+	FR	Membres
+	
 PLUGIN_GROUPS_STARTING
 	DE	Starte Gruppen
 	EN	Starting Player Groups
