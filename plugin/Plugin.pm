@@ -18,11 +18,6 @@ use Plugins::Groups::Source;
 # override default Slim::Player::Playlist::stopAndClear()
 use Plugins::Groups::Playlist;
 
-use Exporter qw(import);
-our @EXPORT_OK = qw(%groups);
-
-our %groups;
-
 my $log = Slim::Utils::Log->addLogCategory({
 	'category' => 'plugin.groups',
 	'defaultLevel' => 'ERROR',
@@ -37,6 +32,30 @@ $prefs->init({
 	restoreStatic => 1,
 });
 
+# migrate existing prefs to new structure, bump prefs version by one tick
+# XXX - this code can probably be removed - only needed for beta testers
+$prefs->migrate(1, sub {
+	my $groups = $prefs->get('groups') || {};
+	
+	return unless ref $groups eq 'HASH';
+	
+	my @groups;
+	
+	# move all group prefs to a client pref object
+	foreach my $group (keys %$groups) {
+		my $cprefs = Slim::Utils::Prefs::Client->new( $prefs, $group, 'no-migrate' );
+		
+		while ( my ($k, $v) = each %{$groups->{$group}} ) {
+			next if $k eq 'name';
+			$cprefs->set($k, $v);
+		}
+		
+		push @groups, $group;
+	}
+	
+	$prefs->set('groups', \@groups);
+});
+
 sub getDisplayName() {
 	return 'PLUGIN_GROUPS_NAME';
 }
@@ -46,33 +65,19 @@ sub initPlugin {
 
 	$log->info(string('PLUGIN_GROUPS_STARTING'));
 
-	%groups = % { $prefs->get('groups') } if (defined $prefs->get('groups'));
-	
 	if ( main::WEBUI ) {
 		require Plugins::Groups::Settings;
 		Plugins::Groups::Settings->new;
 	}	
 
 	$class->initCLI();
-
-	foreach my $id (keys %groups) {
-		$log->info("creating player " . $groups{$id}->{'name'});
-		createPlayer( $id, $groups{$id}->{'name'} );
+	
+	foreach my $id ( @{ $prefs->get('groups') } ) {
+		main::INFOLOG && $log->info("Creating player group $id");
+		createPlayer($id);
 	}
 	
-	Slim::Control::Request::subscribe( \&playerNameChange, [ ['name'] ] );	
 	$originalVolumeHandler = Slim::Control::Request::addDispatch(['mixer', 'volume', '_newvalue'], [1, 0, 0, \&mixerVolumeCommand]);
-}
-
-sub playerNameChange {
-	my $request = shift;
-    my $client  = $request->client;
-		
-	$log->info("client $client name change to ", $client->name);
-	
-	$groups{$client->id}->{'name'} = $client->name if $groups{$client->id};
-	
-	$prefs->set('groups', \%groups);
 }
 
 sub mixerVolumeCommand {
@@ -83,7 +88,7 @@ sub mixerVolumeCommand {
 	my $master = $client->controller->master;
 		
 	return $originalVolumeHandler->($request) unless $client->controller->isa("Plugins::Groups::StreamingController") &&
-													 $groups{$master->id}->{'syncVolume'} &&
+													 $prefs->client($master)->get('syncVolume') &&
 													 !$master->_volumeDispatching;
 
 	my @group  = $client->syncedWith;
@@ -129,7 +134,7 @@ sub mixerVolumeCommand {
 sub createPlayer {
 	my ($id, $name) = @_;
 	# need to have a fake socket because getClient does not call ipport() in an OoO way
-	my $s =  sockaddr_in(0, INADDR_LOOPBACK);
+	my $s = sockaddr_in(0, INADDR_LOOPBACK);
 
 	# $id, $paddr, $rev, $s, $deviceid, $uuid
 	my $client = Plugins::Groups::Player->new($id, $s, 1.0, undef, 12, undef);
@@ -191,7 +196,7 @@ sub _cliGroups {
 	my $index    = $request->getParam('_index') || 0;
 	my $quantity = $request->getParam('_quantity') || 10;
 
-	my @groups = sort keys %groups;
+	my @groups = sort @{ $prefs->get('groups') };
 	my $count = @groups;
 	
 	my ($valid, $start, $end) = $request->normalize(scalar($index), scalar($quantity), $count);
@@ -202,11 +207,14 @@ sub _cliGroups {
 	my $chunkCount = 0;
 	
 	foreach my $group ( @groups[$start .. $end] ) {
+		my $groupClient = Slim::Player::Client::getClient($group);
+		my $cprefs = $prefs->client($groupClient)->get($group);
+
 		$request->addResultLoop($loopname, $chunkCount, 'id', $group);				
-		$request->addResultLoop($loopname, $chunkCount, 'name', $groups{$group}->{name});
-		$request->addResultLoop($loopname, $chunkCount, 'syncPower', $groups{$group}->{syncPower});
-		$request->addResultLoop($loopname, $chunkCount, 'syncVolume', $groups{$group}->{syncVolume});
-		$request->addResultLoop($loopname, $chunkCount, 'players', scalar @{$groups{$group}->{members} || []});
+		$request->addResultLoop($loopname, $chunkCount, 'name', $groupClient->name);
+		$request->addResultLoop($loopname, $chunkCount, 'syncPower', $cprefs->get('syncPower'));
+		$request->addResultLoop($loopname, $chunkCount, 'syncVolume', $cprefs->get('syncVolume'));
+		$request->addResultLoop($loopname, $chunkCount, 'players', scalar @{ $cprefs->get('members') || [ ]});
 		
 		$chunkCount++;
 	}
@@ -223,29 +231,28 @@ sub _cliGroup {
 		return;
 	}
 
-	my $client  = $request->client;
+	my $client = $request->client;
 	
-	if (!$client || $client->model ne 'group' || !$groups{$client->id}) {
+	if (!$client || $client->model ne 'group') {
 		$log->warn($client->id . ' is either not a group, or it does not exist') if $client;
 		$request->setStatusBadDispatch();
 		return;
 	}
 	
-	my $group = $groups{$client->id};
+	my $cprefs = $prefs->client($client);
 	
-#	$request->addResult('id', $client->id);
-	$request->addResult('name', $group->{name});
-	$request->addResult('syncPower', $group->{syncPower});
-	$request->addResult('syncVolume', $group->{syncVolume});
+	$request->addResult('name', $client->name);
+	$request->addResult('syncPower', $cprefs->get('syncPower'));
+	$request->addResult('syncVolume', $cprefs->get('syncVolume'));
 	
 	my $loopname = 'players_loop';
 	my $chunkCount = 0;
 	
-	foreach my $player ( @{$group->{members} || []} ) {
+	foreach my $player ( @{ $cprefs->get('members') || [] } ) {
 		$request->addResultLoop($loopname, $chunkCount, 'id', $player);
 
-		if ( my $client = Slim::Player::Client::getClient($player) ) {
-			$request->addResultLoop($loopname, $chunkCount, 'playername', $client->name);
+		if ( my $slave = Slim::Player::Client::getClient($player) ) {
+			$request->addResultLoop($loopname, $chunkCount, 'playername', $slave->name);
 		}		
 		$chunkCount++;
 	}

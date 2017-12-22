@@ -19,12 +19,12 @@ use Slim::Utils::Misc;
 use Slim::Utils::Network;
 use Slim::Utils::Prefs;
 
+use Plugins::Groups::Plugin;
 use Plugins::Groups::StreamingController qw(TRACK_END USER_STOP USER_PAUSE);;
-use Plugins::Groups::Plugin qw(%groups);
 
 my $prefs = preferences('plugin.groups');
 my $serverPrefs = preferences('server');
-my $log   = logger('plugin.groups');
+my $log = logger('plugin.groups');
 
 {
 	__PACKAGE__->mk_accessor('rw', '_volumeDispatching');
@@ -94,6 +94,11 @@ sub initPrefs {
 
 	# make sure any preferences unique to this client may not have set are set to the default
 	$serverPrefs->client($client)->init($defaultPrefs);
+	
+	$prefs->client($client)->init({
+		syncPower => 1,
+		syncVolume => 1
+	});
 
 	$client->SUPER::initPrefs();
 }
@@ -155,7 +160,7 @@ sub play {
 sub doSync {
 	my ($client) = @_;
 	
-	foreach my $member ( @{$groups{$client->id}->{'members'}} ) {
+	foreach my $member ( @{ $prefs->client($client)->get('members') || [] } ) {
 		my $slave = Slim::Player::Client::getClient($member);
 		next unless $slave;
 
@@ -209,12 +214,12 @@ sub power {
 	# do normal stuff
 	$client->SUPER::power($on, $noplay);
 	
-	return if !$groups{$client->id}->{'syncPower'};
+	return if !$prefs->client($client)->get('syncPower');
 	
 	$log->info("powering $on all members for ", $client->name);
 	
 	# power on all connected members
-	foreach my $member ( @{$groups{$client->id}->{'members'}} )	{
+	foreach my $member ( @{ $prefs->client($client)->get('members') || [] } )	{
 		my $slave = Slim::Player::Client::getClient($member);
 		next unless $slave;
 		# $slave->power($on, $noplay)

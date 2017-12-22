@@ -7,7 +7,7 @@ use Slim::Utils::Strings qw (string);
 use Slim::Utils::Misc;
 use Slim::Utils::Log;
 use Slim::Utils::Prefs;
-use Plugins::Groups::Plugin qw(%groups);
+use Plugins::Groups::Plugin;
 use Plugins::Groups::Player;
 
 my $prefs = preferences('plugin.groups');
@@ -31,65 +31,71 @@ sub handler {
 	
 	$log->debug("Groups::Settings->handler() called.");
 	
-	if ($params->{'saveSettings'}) {
+	if ($params->{saveSettings}) {
+		my $groups = $prefs->get('groups') || [];
+		my @newGroups;
 
-		foreach my $id (keys %groups) {
+		foreach my $id (@$groups) {
+			my $cprefs = Slim::Utils::Prefs::Client->new( $prefs, $id, 'no-migrate' );
 
 			if ($params->{"delete.$id"}) {
-				$log->info("Deleting $id");
-				delete $groups{$id};
+				main::INFOLOG && $log->info("Deleting $id");
+
+				# remove client prefs
+				$prefs->remove('_client:' . $id);
+				
 				Plugins::Groups::Plugin::delPlayer($id);
 				next;
-			} 
-			
-			$groups{$id}->{'syncPower'} = $params->{"syncpower.$id"} ? 1 : 0;
-			$groups{$id}->{'syncVolume'} = $params->{"syncvolume.$id"} ? 1 : 0;
-				
-			my @members = grep { $_ =~ /members.$id/ } keys %$params;
-
-			delete $groups{$id}->{'members'};
-
-			foreach my $player (@members) {
-				my ($player) = $player =~ m/members.[^.]+.(.+)/;
-				push @{$groups{$id}->{'members'}}, $player;
 			}
+			
+			push @newGroups, $id;
+			
+			$cprefs->set('syncPower', $params->{"syncpower.$id"} ? 1 : 0);
+			$cprefs->set('syncVolume', $params->{"syncvolume.$id"} ? 1 : 0);
+				
+			$cprefs->set('members', [ map {
+				/members.$id.(.+)/;
+				$1;
+			} grep /members.$id/, keys %$params ]);
 		}
 		
 		if ((defined $params->{'newGroupName'}) && ($params->{'newGroupName'} ne '')) {
-			my $id = addGroup($params->{'newGroupName'});
+			my $id = createId();
+			
+			push @newGroups, $id;
+			
 			$log->info("Adding $params->{'newGroupName'} $id");
 			Plugins::Groups::Plugin::createPlayer($id, $params->{'newGroupName'});
 		}
 
-		$prefs->set('groups', \%groups);
-
+		$prefs->set('groups', \@newGroups);
 	}
 
-	$params->{'newGroupName'} = undef;
-	$params->{'groups'} = \%groups;
-	$params->{'players'} = 	makePlayerList();
+	$params->{newGroupName} = undef;
+	$params->{groups}       = $prefs->get('groups');
+	$params->{clientPrefs}  = $prefs->{clients};
+	$params->{players}      = makePlayerList();
 
 	$log->debug("Groups::Settings->handler() done.");
 
 	return $class->SUPER::handler( $client, $params );
 }
 
-sub addGroup {
-	my ($name) = @_;
-
+sub createId {
 	my $id;
 	
 	my $genMAC = sub {
 		sprintf("10:10:%02x:%02x:%02x:%02x", int(rand(255)), int(rand(255)), int(rand(255)), int(rand(255)));
 	};
 	
+	# create hash for quick lookup
+	my %groups = map {
+		$_ => 1
+	} @{ $prefs->get('groups') || [] };
+	
 	# generate MAC address and verify it doesn't exist yet
 	while ( $groups{$id = $genMAC->()} ) {};
 
-	$groups{$id}->{'name'} = $name;
-	$groups{$id}->{'syncPower'} = 1;
-	$groups{$id}->{'syncVolume'} = 1;
-	
 	return $id;
 }
 
@@ -98,7 +104,7 @@ sub makePlayerList {
 	
 	foreach my $client (Slim::Player::Client::clients()) {
 		my $player = { "name" => $client->name(), "id" => $client->id() };
-		push @playerList, $player if $client->model() !~ m/group/;
+		push @playerList, $player if $client->model() ne 'group';
 	}
 	
 	@playerList = sort { lc($a->{'name'}) cmp lc($b->{'name'}) } @playerList;
