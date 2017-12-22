@@ -100,6 +100,9 @@ sub initPrefs {
 
 sub songElapsedSeconds {
 	my $client = shift;
+	
+	return 0 if $client->isStopped() || defined $_[0];
+	
 	my $surrogate = _Surrogate($client);
 	
 	# memorise last position for when we'll lose surrogate (pause)
@@ -110,6 +113,9 @@ sub songElapsedSeconds {
 
 sub playPoint {
 	my $client = shift;
+	
+	return if $client->isStopped();
+	
 	my $surrogate = _Surrogate($client);
 	
 	# memorise last playpoint for when we'll lose surrogate (pause)
