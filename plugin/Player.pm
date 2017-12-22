@@ -99,8 +99,23 @@ sub initPrefs {
 }
 
 sub songElapsedSeconds {
-	my $surrogate = _Surrogate($_[0]);
-	return $surrogate ? $surrogate->songElapsedSeconds : 0;
+	my $client = shift;
+	my $surrogate = _Surrogate($client);
+	
+	# memorise last position for when we'll lose surrogate (pause)
+	$client->SUPER::songElapsedSeconds($surrogate->songElapsedSeconds) if $surrogate;
+	
+	return $client->SUPER::songElapsedSeconds;
+}
+
+sub playPoint {
+	my $client = shift;
+	my $surrogate = _Surrogate($client);
+	
+	# memorise last playpoint for when we'll lose surrogate (pause)
+	$client->SUPER::_playPoint($surrogate->controller->{'players'}->[1]->playPoint(@_)) if $surrogate;
+	
+	return $client->SUPER::_playPoint;
 }
 
 sub rebuffer {
@@ -170,11 +185,6 @@ sub undoSync {
 			}
 		}
 	}
-}
-
-sub playPoint {
-	my $surrogate = _Surrogate($_[0]);
-	return $surrogate ? $surrogate->controller->{'players'}->[1]->playPoint : undef;
 }
 
 sub power {
