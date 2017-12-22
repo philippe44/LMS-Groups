@@ -1,8 +1,11 @@
+0.1.7
+ - can change player name
+ 
 0.1.6
  - clean setting page and allow clickable items (credit @mherger)
- - when a slave is stopped "individiually", do not stop the virtual player, just unsync that slave
+ - when a slave is stopped "individually", do not stop the virtual player, just unsync that slave
  - fix CLI
- - volume management was creatign an echo loop
+ - volume management was creating an echo loop
   
 0.1.5
  - change volume management to match iPeng's logic
@@ -12,8 +15,8 @@
  - break up groups at pause
  
 0.1.3
- - fake mac address creattion changes, make it stateless and compatible with earlier Perl version
+ - fake mac address creation changes, make it stateless and compatible with earlier Perl version
  - German & French translations
  
 0.1.2
- - rebufferring can be caused by other players and call to rebuffer did reset bufferReady
+ - rebuffering can be caused by other players and call to rebuffer did reset bufferReady

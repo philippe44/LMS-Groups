@@ -61,7 +61,7 @@ sub new {
 	my $client = $class->SUPER::new($id, $paddr, $rev, $s, $deviceid, $uuid);
 	
 	$client->init_accessor(	
-		_volumeDispatching                  => 0,
+		_volumeDispatching => 0,
 	);	
 	
 	$client->bufferReady(1);

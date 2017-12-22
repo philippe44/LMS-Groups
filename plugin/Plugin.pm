@@ -60,7 +60,19 @@ sub initPlugin {
 		createPlayer( $id, $groups{$id}->{'name'} );
 	}
 	
+	Slim::Control::Request::subscribe( \&playerNameChange, [ ['name'] ] );	
 	$originalVolumeHandler = Slim::Control::Request::addDispatch(['mixer', 'volume', '_newvalue'], [1, 0, 0, \&mixerVolumeCommand]);
+}
+
+sub playerNameChange {
+	my $request = shift;
+    my $client  = $request->client;
+		
+	$log->info("client $client name change to ", $client->name);
+	
+	$groups{$client->id}->{'name'} = $client->name if $groups{$client->id};
+	
+	$prefs->set('groups', \%groups);
 }
 
 sub mixerVolumeCommand {

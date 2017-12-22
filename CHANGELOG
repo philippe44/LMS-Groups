@@ -1,3 +1,6 @@
+0.1.7
+ - can change player name
+ 
 0.1.6
  - clean setting page and allow clickable items (credit @mherger)
  - when a slave is stopped "individually", do not stop the virtual player, just unsync that slave

@@ -81,7 +81,7 @@ sub play {
 	
 	$log->info("play request $self");
 
-	# be careful if we have been synched manually with a normal player
+	# be careful if we have been synced manually with a normal player
 	$self->master->doSync if $self->master->isa("Plugins::Groups::Player");
 	return $self->SUPER::play(@_);
 }	
