@@ -7,19 +7,21 @@
 		<input type="text" class="stdedit" name="newGroupName" id="newGroupName" value="[% newGroupName %]" size="20" />
 	[% END %]
 	
-	[% FOREACH gid IN groups.keys %]
+	[% USE Clients %]
+	
+	[% FOREACH gid IN groups %]
 		<hr>
 		
-		[% WRAPPER setting title=groups.$gid.name desc="PLUGIN_GROUPS_DELETEGROUP_DESC" %]
+		[% WRAPPER setting title=Clients.client(gid).name desc="PLUGIN_GROUPS_DELETEGROUP_DESC" %]
 			<input type="checkbox" name="delete.[% gid %]" id="delete.[% gid %]" value="[% gid %]" />
 			<label for="delete.[% gid %]">[% "PLUGIN_GROUPS_DELETEGROUP" | string %]</label>
 		[% END %]
 		
 		[% WRAPPER setting title="PLUGIN_GROUPS_SYNC" desc="PLUGIN_GROUPS_SYNC_DESC" %]
-			<input type="checkbox" name="syncpower.[% gid %]" id="syncpower.[% gid %]" [% IF groups.$gid.syncPower %] checked [% END %] value="1" class="stdedit"/>
+			<input type="checkbox" name="syncpower.[% gid %]" id="syncpower.[% gid %]" [% IF clientPrefs.$gid.syncPower %] checked [% END %] value="1" class="stdedit"/>
 			<label for="syncpower.[% gid %]">[% "PLUGIN_GROUPS_SYNCPOWER" | string %]</label>
 			<br> 
-			<input type="checkbox" name="syncvolume.[% gid %]" id="syncvolume.[% gid %]" [% IF groups.$gid.syncVolume %] checked [% END %] value="1" class="stdedit"/>
+			<input type="checkbox" name="syncvolume.[% gid %]" id="syncvolume.[% gid %]" [% IF clientPrefs.$gid.syncVolume %] checked [% END %] value="1" class="stdedit"/>
 			<label for="syncvolume.[% gid %]">[% "PLUGIN_GROUPS_SYNCVOLUME" | string %]</label>
 		[% END %]
 		
@@ -31,7 +33,7 @@
 				[% groupPlayerId = "members." _ gid _ "." _ pid %]
 				[% IF count % 4 == 0 %]<tr>[% END %]
 				<td style="padding: 0 10px 2px 0">
-					<input type="checkbox" name="[% groupPlayerId %]" id="members.[% gid %].[% pid %]" [% IF groups.$gid.members.grep(pid).size() %] checked [% END %] value="1" />
+					<input type="checkbox" name="[% groupPlayerId %]" id="members.[% gid %].[% pid %]" [% IF clientPrefs.$gid.members.grep(pid).size() %] checked [% END %] value="1" />
 					<label for="members.[% gid %].[% pid %]">[% player.name %]</label>
 				</td>
 				[% count = count + 1 %]
