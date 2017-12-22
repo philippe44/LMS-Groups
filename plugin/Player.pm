@@ -100,7 +100,7 @@ sub initPrefs {
 
 sub songElapsedSeconds {
 	my $surrogate = _Surrogate($_[0]);
-	return $surrogate ? $surrogate->songElapsedSeconds : undef;
+	return $surrogate ? $surrogate->songElapsedSeconds : 0;
 }
 
 sub rebuffer {

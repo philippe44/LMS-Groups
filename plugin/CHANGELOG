@@ -6,6 +6,7 @@
  - when a slave is stopped "individually", do not stop the virtual player, just unsync that slave
  - fix CLI
  - volume management was creating an echo loop
+ - songElapsedSeconds shall return 0 when no surrogate (means we are stopped) instead of undefined
   
 0.1.5
  - change volume management to match iPeng's logic
