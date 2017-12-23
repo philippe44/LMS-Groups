@@ -72,9 +72,9 @@ sub handler {
 	}
 
 	$params->{newGroupName} = undef;
-	$params->{groups}       = $prefs->get('groups');
-	$params->{clientPrefs}  = $prefs->{clients};
-	$params->{players}      = makePlayerList();
+	$params->{groups} = $prefs->get('groups');
+	%{$params->{clientPrefs}} = map { $_ => $prefs->client(Slim::Player::Client::getClient($_))->all } @{$params->{groups}};
+	$params->{players} = makePlayerList();
 
 	$log->debug("Groups::Settings->handler() done.");
 
