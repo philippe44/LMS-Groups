@@ -102,7 +102,8 @@ sub initPrefs {
 	
 	$prefs->client($client)->init({
 		syncPower => 1,
-		syncVolume => 1
+		syncVolume => 1,
+		syncPowerPlay => 1,		
 	});
 
 	$client->SUPER::initPrefs();
@@ -183,18 +184,21 @@ sub _chunksCleanup {
 }
 
 sub doSync {
-	my ($client) = @_;
+	my ($client, $resume) = @_;
 	
 	foreach my $member ( @{ $prefs->client($client)->get('members') || [] } ) {
 		my $slave = Slim::Player::Client::getClient($member);
 		next unless $slave;
-
+		
+		# power on all members if needed, only on first play, not on resume
+		Slim::Control::Request::executeRequest($slave, ['power', 1, 1]) if !$resume && $prefs->client($client)->get('syncPowerPlay');
+		
 		# if this player used to belong to a syncgroup, save it for later restoration	
 		my $syncGroupId = $serverPrefs->client($slave)->get('syncgroupid') || 0;
 		$serverPrefs->client($slave)->set('groups.syncgroupid', $syncGroupId) if $syncGroupId;
 		$log->debug("sync ", $slave->name, " to ", $client->name, " former syncgroup ", $syncGroupId);
 				
-		$client->controller()->sync($slave);
+		$client->controller()->sync($slave, $resume);
 	}
 }
 

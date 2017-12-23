@@ -116,7 +116,7 @@ sub resume {
 	
 	$log->info("resume request $self");
 	
-	$self->master->doSync if $self->master->isa("Plugins::Groups::Player");
+	$self->master->doSync(1) if $self->master->isa("Plugins::Groups::Player");
 	return $self->SUPER::resume(@_);
 }	
 

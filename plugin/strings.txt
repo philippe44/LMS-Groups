@@ -58,6 +58,11 @@ PLUGIN_GROUPS_SYNCPOWER
 	EN	Power on/off
 	FR	Allumé/Eteint
 	
+PLUGIN_GROUPS_SYNCPOWERPLAY
+	DE	Mitglieder Ein beim Start
+	EN	Power members on play
+	FR	Allume les membres au démarrage
+	
 PLUGIN_GROUPS_SYNCVOLUME
 	DE	Lautstärke
 	EN	Volume

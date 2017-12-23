@@ -47,6 +47,7 @@ sub handler {
 			}
 			
 			$cprefs->set('syncPower', $params->{"syncpower.$id"} ? 1 : 0);
+			$cprefs->set('syncPowerPlay', $params->{"syncpowerplay.$id"} ? 1 : 0);
 			$cprefs->set('syncVolume', $params->{"syncvolume.$id"} ? 1 : 0);
 				
 			$cprefs->set('members', [ map {
