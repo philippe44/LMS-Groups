@@ -14,6 +14,7 @@ use strict;
 
 use base qw(Slim::Player::Player);
 
+use List::Util qw(min max);
 use Slim::Utils::Log;
 use Slim::Utils::Misc;
 use Slim::Utils::Network;
@@ -22,12 +23,16 @@ use Slim::Utils::Prefs;
 use Plugins::Groups::Plugin;
 use Plugins::Groups::StreamingController qw(TRACK_END USER_STOP USER_PAUSE);;
 
+use constant CHUNK_QUEUED_AWM	 => 5;
+use constant CHUNK_MIN_TIMER 	=> 0.05;
+use constant CHUNK_MAX_TIMER 	=> 30;
+
 my $prefs = preferences('plugin.groups');
 my $serverPrefs = preferences('server');
 my $log = logger('plugin.groups');
 
 {
-	__PACKAGE__->mk_accessor('rw', '_volumeDispatching');
+	__PACKAGE__->mk_accessor('rw', qw(_volumeDispatching));
 }
 
 our $defaultPrefs = {
@@ -154,7 +159,27 @@ sub play {
 		return 0;
 	}
 	
+	# safety mechanism in case the Slim::Player::Source::nextChunk has not been overloaded properly
+	# this does not need to be re-evaluated at pause/resume at there is a play event happening in that
+	# case anyway
+	Slim::Utils::Timers::setTimer( $client,	Time::HiRes::time() + CHUNK_MIN_TIMER, \&_chunksCleanup, CHUNK_MIN_TIMER );
+	
 	return $count ? 1 : 0;
+}
+
+sub _chunksCleanup {
+	my ($client, $timer) = @_;
+	my $chunks = scalar @{$client->chunks};
+
+	@{$client->chunks} = ();
+	
+	# need to set a max because lowrate mp3 might cause us to sleep for a very long time but queue 
+	# should resume at some point
+	$timer = min(max($timer * CHUNK_QUEUED_AWM / ($chunks || CHUNK_QUEUED_AWM * 0.66), CHUNK_MIN_TIMER), CHUNK_MAX_TIMER);
+	$log->debug("$chunks chunks => sleep $timer");
+	
+	# restart ourselves - this timer will be terminated by undoSync
+	Slim::Utils::Timers::setTimer( $client,	Time::HiRes::time() + $timer, \&_chunksCleanup, $timer );
 }
 
 sub doSync {
@@ -176,6 +201,7 @@ sub doSync {
 sub undoSync {
 	my ($client, $kind) = @_;
 	
+	# disassmble thr group, take care of previously establish groups
 	foreach my $slave ($client->syncedWith) {
 		$log->info("undo group sync for ", $slave->name, " from ", $client->name);
 		$slave->controller()->unsync($slave);
@@ -196,6 +222,9 @@ sub undoSync {
 			}
 		}
 	}
+	
+	# can stop chunks cleanup timers
+	Slim::Utils::Timers::killTimers($client, \&_chunksTimer);	
 }
 
 sub power {

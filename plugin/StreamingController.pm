@@ -52,6 +52,12 @@ sub playerStatusHeartbeat {
 		
 	$log->debug("status heartbeat $client");
 	
+	# this is probably not strictly needed, but I'm not sure what happens with low
+	# bitrate file when the cleaning timer is at max but more chunks are added again
+	# because the player needs more ... that might cause queue stalling. By putting
+	# another cleanup here, it does not hurt and will take care or regulat cleaning
+	@{$client->master->chunks} = ();
+	
 	# send heartbeat on behalf of master
 	$self->SUPER::playerStatusHeartbeat($client->master) if $client == $surrogate;
 	

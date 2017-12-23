@@ -1,3 +1,6 @@
+0.1.11
+ - special timer to clean chunks of virtual group in case the Slim::Player::Source::nextChunk is not overloaded (can happen is anothe rplugin is doing the same hack)
+ 
 0.1.10
  - optimize settings handling by getting rid of groups in prefs (credit @mherger)
  
