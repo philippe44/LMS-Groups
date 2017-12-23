@@ -52,9 +52,6 @@ sub playerStatusHeartbeat {
 		
 	$log->debug("status heartbeat $client");
 	
-	# empty chunks regularly as there is no real player to use them
-	@{$client->master->chunks} = ();
-	
 	# send heartbeat on behalf of master
 	$self->SUPER::playerStatusHeartbeat($client->master) if $client == $surrogate;
 	
