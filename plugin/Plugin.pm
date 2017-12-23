@@ -49,11 +49,9 @@ $prefs->migrate(1, sub {
 			next if $k eq 'name';
 			$cprefs->set($k, $v);
 		}
-		
-		push @groups, $group;
 	}
 	
-	$prefs->set('groups', \@groups);
+	$prefs->remove('groups');
 });
 
 sub getDisplayName() {
@@ -72,7 +70,7 @@ sub initPlugin {
 
 	$class->initCLI();
 	
-	foreach my $id ( @{ $prefs->get('groups') } ) {
+	foreach my $id ( $class->groupIDs() ) {
 		main::INFOLOG && $log->info("Creating player group $id");
 		createPlayer($id);
 	}
@@ -184,6 +182,10 @@ sub initCLI {
 	Slim::Control::Request::addDispatch(['playergroup'],        [1, 1, 0, \&_cliGroup]);
 }
 
+sub groupIDs {
+	return map { $_->{clientid} } $prefs->allClients();
+}
+
 sub _cliGroups {
 	my $request = shift;
 
@@ -196,7 +198,7 @@ sub _cliGroups {
 	my $index    = $request->getParam('_index') || 0;
 	my $quantity = $request->getParam('_quantity') || 10;
 
-	my @groups = sort @{ $prefs->get('groups') };
+	my @groups = sort groupIDs();
 	my $count = @groups;
 	
 	my ($valid, $start, $end) = $request->normalize(scalar($index), scalar($quantity), $count);

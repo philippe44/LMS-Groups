@@ -32,23 +32,19 @@ sub handler {
 	$log->debug("Groups::Settings->handler() called.");
 	
 	if ($params->{saveSettings}) {
-		my $groups = $prefs->get('groups') || [];
-		my @newGroups;
-
-		foreach my $id (@$groups) {
+		foreach my $id ( Plugins::Groups::Plugin->groupIDs() ) {
 			my $cprefs = Slim::Utils::Prefs::Client->new( $prefs, $id, 'no-migrate' );
 
 			if ($params->{"delete.$id"}) {
 				main::INFOLOG && $log->info("Deleting $id");
-
-				# remove client prefs
-				$prefs->remove('_client:' . $id);
 				
 				Plugins::Groups::Plugin::delPlayer($id);
+
+				# remove client prefs
+				$prefs->remove($Slim::Utils::Prefs::Client::clientPreferenceTag . ':' . $id);
+
 				next;
 			}
-			
-			push @newGroups, $id;
 			
 			$cprefs->set('syncPower', $params->{"syncpower.$id"} ? 1 : 0);
 			$cprefs->set('syncVolume', $params->{"syncvolume.$id"} ? 1 : 0);
@@ -62,19 +58,15 @@ sub handler {
 		if ((defined $params->{'newGroupName'}) && ($params->{'newGroupName'} ne '')) {
 			my $id = createId();
 			
-			push @newGroups, $id;
-			
 			$log->info("Adding $params->{'newGroupName'} $id");
 			Plugins::Groups::Plugin::createPlayer($id, $params->{'newGroupName'});
 		}
-
-		$prefs->set('groups', \@newGroups);
 	}
 
 	$params->{newGroupName} = undef;
-	$params->{groups} = $prefs->get('groups');
-	%{$params->{clientPrefs}} = map { $_ => $prefs->client(Slim::Player::Client::getClient($_))->all } @{$params->{groups}};
-	$params->{players} = makePlayerList();
+	$params->{groups}       = [ Plugins::Groups::Plugin->groupIDs() ];
+	$params->{clientPrefs}  = $prefs->{clients};
+	$params->{players}      = makePlayerList();
 
 	$log->debug("Groups::Settings->handler() done.");
 
@@ -91,7 +83,7 @@ sub createId {
 	# create hash for quick lookup
 	my %groups = map {
 		$_ => 1
-	} @{ $prefs->get('groups') || [] };
+	} Plugins::Groups::Plugin->groupIDs();
 	
 	# generate MAC address and verify it doesn't exist yet
 	while ( $groups{$id = $genMAC->()} ) {};
