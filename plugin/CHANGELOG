@@ -1,3 +1,6 @@
+0.1.9
+ - nextChunk replaced otherwise master's chunks where not emptied fast enough
+ 
 0.1.8
   - now that group is disassembled at pause, need to memorise playpoint/position as we lose surrogate
 
