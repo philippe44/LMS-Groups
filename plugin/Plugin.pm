@@ -90,7 +90,8 @@ sub mixerVolumeCommand {
 													 !$master->_volumeDispatching;
 
 	my @group  = $client->syncedWith;
-	my $oldVolume = $master->volume;
+	my $oldVolume = $client->volume;
+	$newVolume += $oldVolume if $newVolume =~ /^[\+\-]/;
 	
 	# avoid recursing loop				
 	$master->_volumeDispatching(1);			
