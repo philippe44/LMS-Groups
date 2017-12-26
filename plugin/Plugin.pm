@@ -75,7 +75,17 @@ sub initPlugin {
 		createPlayer($id);
 	}
 	
+    Slim::Control::Request::subscribe( \&onPause, [ [ 'pause' ] ] );
+	
 	$originalVolumeHandler = Slim::Control::Request::addDispatch(['mixer', 'volume', '_newvalue'], [1, 0, 0, \&mixerVolumeCommand]);
+}
+
+sub onPause {
+	my $request = shift;
+    my $client  = $request->client;
+    my $pause = $request->getParam('_newvalue');
+
+	$log->error("GOT NOTIFICATION $pause");
 }
 
 sub mixerVolumeCommand {
@@ -102,13 +112,13 @@ sub mixerVolumeCommand {
 		# when changing virtual player's volume, apply a ratio to all real players, unless the previous
 		# volume was zero, which means everybody has a fresh start
 		
-		foreach my $slave (@group) {
-			my $slaveVolume = $oldVolume ? $slave->volume * $newVolume / $oldVolume : $newVolume;
-			$log->debug("new volume for $slave $slaveVolume");
-			Slim::Control::Request::executeRequest($slave, ['mixer', 'volume', $slaveVolume]);
+		foreach my $member (@group) {
+			my $memberVolume = $oldVolume ? $member->volume * $newVolume / $oldVolume : $newVolume;
+			$log->debug("new volume for $member $memberVolume");
+			Slim::Control::Request::executeRequest($member, ['mixer', 'volume', $memberVolume]);
 		}	
 	} else {
-		# when changing the volume of a slave, need to feed that back to the virtual player so that it
+		# when changing the volume of a member, need to feed that back to the virtual player so that it
 		# displays an average
 		
 		# take an average of the whole group, including ourselves but exclude virtual player
@@ -254,8 +264,8 @@ sub _cliGroup {
 	foreach my $player ( @{ $cprefs->get('members') || [] } ) {
 		$request->addResultLoop($loopname, $chunkCount, 'id', $player);
 
-		if ( my $slave = Slim::Player::Client::getClient($player) ) {
-			$request->addResultLoop($loopname, $chunkCount, 'playername', $slave->name);
+		if ( my $member = Slim::Player::Client::getClient($player) ) {
+			$request->addResultLoop($loopname, $chunkCount, 'playername', $member->name);
 		}		
 		$chunkCount++;
 	}
