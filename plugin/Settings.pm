@@ -9,8 +9,10 @@ use Slim::Utils::Log;
 use Slim::Utils::Prefs;
 use Plugins::Groups::Plugin;
 use Plugins::Groups::Player;
+use Data::Dumper;
 
 my $prefs = preferences('plugin.groups');
+my $sprefs = preferences('server');
 my $log   = logger('plugin.groups');
 my @playerList;
 
@@ -33,27 +35,18 @@ sub handler {
 	
 	if ($params->{saveSettings}) {
 		foreach my $id ( Plugins::Groups::Plugin->groupIDs() ) {
-			my $cprefs = Slim::Utils::Prefs::Client->new( $prefs, $id, 'no-migrate' );
-
+	
 			if ($params->{"delete.$id"}) {
-				main::INFOLOG && $log->info("Deleting $id");
-				
 				Plugins::Groups::Plugin::delPlayer($id);
-
-				# remove client prefs
-				$prefs->remove($Slim::Utils::Prefs::Client::clientPreferenceTag . ':' . $id);
-
 				next;
 			}
-			
-			$cprefs->set('syncPower', $params->{"syncpower.$id"} ? 1 : 0);
-			$cprefs->set('syncPowerPlay', $params->{"syncpowerplay.$id"} ? 1 : 0);
-			$cprefs->set('syncVolume', $params->{"syncvolume.$id"} ? 1 : 0);
-				
-			$cprefs->set('members', [ map {
-				/members.$id.(.+)/;
-				$1;
-			} grep /members.$id/, keys %$params ]);
+
+			Plugins::Groups::Plugin::setPrefs($id, 'powerMaster', $params->{"powerMaster.$id"} ? 1 : 0);
+			Plugins::Groups::Plugin::setPrefs($id, 'powerPlay', $params->{"powerPlay.$id"} ? 1 : 0);
+			Plugins::Groups::Plugin::setPrefs($id, 'members', [ map {
+														/members.$id.(.+)/;
+														$1;
+														} grep /members.$id/, keys %$params ]);
 		}
 		
 		if ((defined $params->{'newGroupName'}) && ($params->{'newGroupName'} ne '')) {
@@ -65,12 +58,11 @@ sub handler {
 	}
 
 	$params->{newGroupName} = undef;
-	$params->{groups}       = [ Plugins::Groups::Plugin->groupIDs() ];
-	$params->{clientPrefs}  = $prefs->{clients};
 	$params->{players}      = makePlayerList();
-
+	$params->{groups}      = [ Plugins::Groups::Plugin::getPrefs ];
+	
 	$log->debug("Groups::Settings->handler() done.");
-
+	
 	return $class->SUPER::handler( $client, $params );
 }
 

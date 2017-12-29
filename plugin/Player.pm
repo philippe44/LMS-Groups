@@ -21,7 +21,12 @@ my $log = logger('plugin.groups');
 }
 
 our $defaultPrefs = {
-	'maxBitrate'		 => 0,
+	'maxBitrate'	=> 0,
+	$prefs->namespace	=> {	
+		'powerMaster' 	=> 1,
+		'powerPlay' 	=> 1,
+		'members'		=> [],
+		},	
 };	
 
 sub model { "group" }
@@ -85,13 +90,7 @@ sub initPrefs {
 	# make sure any preferences unique to this client may not have set are set to the default
 	$serverPrefs->client($client)->init($defaultPrefs);
 	
-	$prefs->client($client)->init({
-		syncPower => 1,
-		syncVolume => 1,
-		syncPowerPlay => 1,		
-	});
-
-	$client->SUPER::initPrefs();
+	$client->SUPER::initPrefs;
 }
 
 sub songElapsedSeconds {

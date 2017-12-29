@@ -1,12 +1,12 @@
 PLUGIN_GROUPS_NAME
-	DE	Player-Gruppen
-	EN	Player Groups
+	DE	Gruppe-Player
+	EN	Group Players
 	FR	Lecteurs Groupés
 	
 PLUGIN_GROUPS_DESC
 	DE	Gruppe erstellen
-	EN	Create Player Groups
-	FR	Création de Lecteurs Groupés
+	EN	Create Group Player
+	FR	Création de Lecteur Groupé
 	
 PLUGIN_GROUPS_MEMBERS
 	DE	Mitglieder
@@ -15,7 +15,7 @@ PLUGIN_GROUPS_MEMBERS
 	
 PLUGIN_GROUPS_STARTING
 	DE	Starte Gruppen
-	EN	Starting Player Groups
+	EN	Starting Group Players
 	FR	Démarrage des Lecteurs Groupés
 	
 PLUGIN_GROUPS_NEWGROUP
@@ -25,7 +25,7 @@ PLUGIN_GROUPS_NEWGROUP
 	
 PLUGIN_GROUPS_NEWGROUP_NAME
 	DE	Neuer Gruppen-Name
-	EN	New Group name
+	EN	New Group Player name
 	FR	Nom du Lecteur Groupé
 	
 PLUGIN_GROUPS_NEWGROUP_DESC
@@ -40,30 +40,30 @@ PLUGIN_GROUPS_DELETEGROUP
 	
 PLUGIN_GROUPS_DELETEGROUP_DESC
 	DE	Kreuze diese Checkbox an um die Gruppe definitiv zu löschen.
-	EN	Check this box and press Apply to permanently delete this Group player
+	EN	Check this box and press Apply to permanently delete this Group Player
 	FR	Cliquez ici puis sur Appliquer pour détruire le Lecteur Groupé
 	
-PLUGIN_GROUPS_SYNC
-	DE	Synchronisations-Einstellungen
-	EN	Synchronization options
-	FR	Options de synchronisation
+PLUGIN_GROUPS_OPTIONS
+	DE	Einstellungen
+	EN	Options
+	FR	Options
 	
-PLUGIN_GROUPS_SYNC_DESC
-	DE	Steuert, wie Änderungen an der Gruppe die Player beeinflusst: <br> - Player miteinander ein/ausschalten <br> - Lautstärke der Player einer Gruppe zusammen steuern
-	EN	Sets how changes on Group Player affects members <br> - power on/off members alltogether <br> - volume change on Group Player adjust members proportionally
-	FR	Définit la façon dont un changement sur un Lecteur Groupé affecte les membres <br> - Allume/Eteint tous les membres <br> - Change le volume des membres proportionellement 
+PLUGIN_GROUPS_OPTIONS_DESC
+	DE	Steuert, wie Änderungen an der Gruppe die Player beeinflusst: <br> - Player miteinander ein/ausschalten 
+	EN	Sets how changes on Group Player affects members <br> - power on/off members alltogether <br> - power members when playing
+	FR	Définit la façon dont un changement sur un Lecteur Groupé affecte les membres <br> - Allume/Eteint tous les membres <br> Allume les membres à la lecture
 
-PLUGIN_GROUPS_SYNCPOWER
+PLUGIN_GROUPS_OPTIONSPOWER
 	DE	Ein/Ausschalten
 	EN	Power on/off
 	FR	Allumé/Eteint
 	
-PLUGIN_GROUPS_SYNCPOWERPLAY
+PLUGIN_GROUPS_OPTIONSPOWERPLAY
 	DE	Mitglieder Ein beim Start
 	EN	Power members on play
-	FR	Allume les membres au démarrage
+	FR	Allume les membres à la lecture
 	
-PLUGIN_GROUPS_SYNCVOLUME
+PLUGIN_GROUPS_OPTIONSVOLUME
 	DE	Lautstärke
 	EN	Volume
 	FR	Volume
@@ -74,8 +74,6 @@ PLUGIN_GROUPS_RESTORESTATIC
 	FR	Rétablit les groupes pré-existants
 
 PLUGIN_GROUPS_RESTORESTATIC_DESC
-	EN	When a Group Player stops, members that belong to a static LMS group can be re-associated to that 
-	EN	group. They will not resume playing what's current on that static group, but at next track they will
-	EN	restart
-	FR	Lorsqu'un Lecteur Groupé s'arrête, les membres qui appartenaient auparavant à un groupe permanent peuvent être ré-affectés à celui-ci. Ils ne recommenceront à jouer qu'au début de la piste suivante
+	EN	When a Group Player stops, members that belonged to a LMS group can be re-associated to it. They resume playing at next track
+	FR	Lorsqu'un Lecteur Groupé s'arrête, les membres appartenant permanent peuvent lui être ré-affectés. Ils ne recommenceront à jouer qu'à la piste suivante
 

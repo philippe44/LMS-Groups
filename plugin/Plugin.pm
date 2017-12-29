@@ -5,11 +5,14 @@ package Plugins::Groups::Plugin;
 use base qw(Slim::Plugin::Base);
 
 use Socket;
+use List::Util qw(first);
+
 use Slim::Utils::Strings qw (string);
 use Slim::Utils::Misc;
 use Slim::Utils::Log;
 use Slim::Utils::Prefs;
 use Slim::Player::StreamingController;
+use Data::Dumper;
 
 use Plugins::Groups::StreamingController qw(TRACK_END USER_STOP USER_PAUSE);
 
@@ -26,6 +29,7 @@ my $log = Slim::Utils::Log->addLogCategory({
 
 my $prefs = preferences('plugin.groups');
 my $serverPrefs = preferences('server');
+my $sprefs = preferences('server');
 my $originalVolumeHandler;
 
 $prefs->init({
@@ -38,6 +42,8 @@ $prefs->migrate(1, sub {
 	my $groups = $prefs->get('groups') || {};
 	
 	return unless ref $groups eq 'HASH';
+	# TODO: need to update
+	return;
 	
 	my @groups;
 	
@@ -75,17 +81,7 @@ sub initPlugin {
 		createPlayer($id);
 	}
 	
-    Slim::Control::Request::subscribe( \&onPause, [ [ 'pause' ] ] );
-	
 	$originalVolumeHandler = Slim::Control::Request::addDispatch(['mixer', 'volume', '_newvalue'], [1, 0, 0, \&mixerVolumeCommand]);
-}
-
-sub onPause {
-	my $request = shift;
-    my $client  = $request->client;
-    my $pause = $request->getParam('_newvalue');
-
-	$log->error("GOT NOTIFICATION $pause");
 }
 
 sub mixerVolumeCommand {
@@ -165,8 +161,11 @@ sub createPlayer {
 	$log->info("create group player $client");
 }
 
-sub delPlayer {
+sub delPlayer {	
 	my $client = Slim::Player::Client::getClient($_[0]);
+	
+	# remove client prefs as it will not come back with same mac
+	$sprefs->remove($Slim::Utils::Prefs::Client::clientPreferenceTag . ':' . $_[0]);
 
 	$client->tcpsock(undef);
 	$client->disconnected(1);
@@ -176,8 +175,8 @@ sub delPlayer {
 				# $client->forgetClient;
 				Slim::Control::Request::executeRequest($client, ['client', 'forget']);
 				} );
-	
-	$log->info("delete group player $client");
+				
+	main::INFOLOG && $log->info("delete group player $client");
 }
 
 sub initCLI {
@@ -191,10 +190,6 @@ sub initCLI {
 	);
 
 	Slim::Control::Request::addDispatch(['playergroup'],        [1, 1, 0, \&_cliGroup]);
-}
-
-sub groupIDs {
-	return map { $_->{clientid} } $prefs->allClients();
 }
 
 sub _cliGroups {
@@ -221,13 +216,12 @@ sub _cliGroups {
 	
 	foreach my $group ( @groups[$start .. $end] ) {
 		my $groupClient = Slim::Player::Client::getClient($group);
-		my $cprefs = $prefs->client($groupClient)->get($group);
-
+		
 		$request->addResultLoop($loopname, $chunkCount, 'id', $group);				
 		$request->addResultLoop($loopname, $chunkCount, 'name', $groupClient->name);
-		$request->addResultLoop($loopname, $chunkCount, 'syncPower', $cprefs->get('syncPower'));
-		$request->addResultLoop($loopname, $chunkCount, 'syncVolume', $cprefs->get('syncVolume'));
-		$request->addResultLoop($loopname, $chunkCount, 'players', scalar @{ $cprefs->get('members') || [ ]});
+		$request->addResultLoop($loopname, $chunkCount, 'powerMaster', getPrefs($group, 'powerMaster'));
+		$request->addResultLoop($loopname, $chunkCount, 'powerPlay', getPrefs($group, 'powerPlay'));
+		$request->addResultLoop($loopname, $chunkCount, 'players', scalar @{ getPref($group,'members') || [ ]});
 		
 		$chunkCount++;
 	}
@@ -252,16 +246,14 @@ sub _cliGroup {
 		return;
 	}
 	
-	my $cprefs = $prefs->client($client);
-	
 	$request->addResult('name', $client->name);
-	$request->addResult('syncPower', $cprefs->get('syncPower'));
-	$request->addResult('syncVolume', $cprefs->get('syncVolume'));
+	$request->addResult('powerMaster', getPrefs($client->id, 'powerMaster'));
+	$request->addResult('powerPlay', getPrefs($client->id, 'powerPlay'));
 	
 	my $loopname = 'players_loop';
 	my $chunkCount = 0;
 	
-	foreach my $player ( @{ $cprefs->get('members') || [] } ) {
+	foreach my $player ( @{ getPrefs($client->id,'members') || [] } ) {
 		$request->addResultLoop($loopname, $chunkCount, 'id', $player);
 
 		if ( my $member = Slim::Player::Client::getClient($player) ) {
@@ -272,5 +264,38 @@ sub _cliGroup {
 
 	$request->setStatusDone();
 }
+
+sub getPrefs {
+	my ($id, $key) = @_;
+	
+	# get prefs for a specific id (optionally for a specific key)
+	if ( defined $id ) {
+		my $cprefs = $sprefs->{clients}->{$id} || first { $_->{clientid} eq $id } $sprefs->allClients;
+		
+		return $cprefs->get($prefs->namespace)->{$key} if defined $key;
+		return $cprefs->get($prefs->namespace);
+	} 
+	
+	# return an array of prefs for all and add id's
+	return map { {clientid => $_->{clientid}, %{$_->get($prefs->namespace)}} 
+		} grep { $_->exists($prefs->namespace) } $sprefs->allClients;
+}
+
+sub setPrefs {
+	my ($id, $key, $value) = @_;
+	my $cprefs = $sprefs->{clients}->{$id} || first { $_->{clientid} eq $id } $sprefs->allClients;
+	my $nsprefs = $cprefs->get($prefs->namespace);
+	
+	# bulk setting
+	if (ref $key eq 'HASH') { %$nsprefs = (%$nsprefs, %$key) }
+	else { $nsprefs->{$key} = $value }	
+		
+	$cprefs->set($prefs->namespace, $nsprefs);
+}
+
+sub groupIDs {
+	return map { $_->{clientid} } grep { $_->exists($prefs->namespace) } $sprefs->allClients;
+}
+
 
 1;
