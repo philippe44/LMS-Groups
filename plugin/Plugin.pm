@@ -219,9 +219,9 @@ sub _cliGroups {
 		
 		$request->addResultLoop($loopname, $chunkCount, 'id', $group);				
 		$request->addResultLoop($loopname, $chunkCount, 'name', $groupClient->name);
-		$request->addResultLoop($loopname, $chunkCount, 'powerMaster', getPrefs($group, 'powerMaster'));
-		$request->addResultLoop($loopname, $chunkCount, 'powerPlay', getPrefs($group, 'powerPlay'));
-		$request->addResultLoop($loopname, $chunkCount, 'players', scalar @{ getPref($group,'members') || [ ]});
+		$request->addResultLoop($loopname, $chunkCount, 'powerMaster', $groupClient->getPrefs('powerMaster'));
+		$request->addResultLoop($loopname, $chunkCount, 'powerPlay', $groupClient->getPrefs('powerPlay'));
+		$request->addResultLoop($loopname, $chunkCount, 'players', scalar @{ $groupClient->getPrefs('members') || [ ]});
 		
 		$chunkCount++;
 	}
@@ -247,13 +247,13 @@ sub _cliGroup {
 	}
 	
 	$request->addResult('name', $client->name);
-	$request->addResult('powerMaster', getPrefs($client->id, 'powerMaster'));
-	$request->addResult('powerPlay', getPrefs($client->id, 'powerPlay'));
+	$request->addResult('powerMaster', $client->getPrefs('powerMaster'));
+	$request->addResult('powerPlay', $client->getPrefs('powerPlay'));
 	
 	my $loopname = 'players_loop';
 	my $chunkCount = 0;
 	
-	foreach my $player ( @{ getPrefs($client->id,'members') || [] } ) {
+	foreach my $player ( @{ $client->getPrefs('members') || [] } ) {
 		$request->addResultLoop($loopname, $chunkCount, 'id', $player);
 
 		if ( my $member = Slim::Player::Client::getClient($player) ) {
@@ -265,34 +265,11 @@ sub _cliGroup {
 	$request->setStatusDone();
 }
 
-sub getPrefs {
-	my ($id, $key) = @_;
-	
-	# get prefs for a specific id (optionally for a specific key)
-	if ( defined $id ) {
-		my $cprefs = $sprefs->{clients}->{$id} || first { $_->{clientid} eq $id } $sprefs->allClients;
-		
-		return $cprefs->get($prefs->namespace)->{$key} if defined $key;
-		return $cprefs->get($prefs->namespace);
-	} 
-	
-	# return an array of prefs for all and add id's
+sub allPrefs {
 	return map { {clientid => $_->{clientid}, %{$_->get($prefs->namespace)}} 
 		} grep { $_->exists($prefs->namespace) } $sprefs->allClients;
 }
-
-sub setPrefs {
-	my ($id, $key, $value) = @_;
-	my $cprefs = $sprefs->{clients}->{$id} || first { $_->{clientid} eq $id } $sprefs->allClients;
-	my $nsprefs = $cprefs->get($prefs->namespace);
-	
-	# bulk setting
-	if (ref $key eq 'HASH') { %$nsprefs = (%$nsprefs, %$key) }
-	else { $nsprefs->{$key} = $value }	
 		
-	$cprefs->set($prefs->namespace, $nsprefs);
-}
-
 sub groupIDs {
 	return map { $_->{clientid} } grep { $_->exists($prefs->namespace) } $sprefs->allClients;
 }

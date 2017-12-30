@@ -9,7 +9,6 @@ use Slim::Utils::Log;
 use Slim::Utils::Prefs;
 use Plugins::Groups::Plugin;
 use Plugins::Groups::Player;
-use Data::Dumper;
 
 my $prefs = preferences('plugin.groups');
 my $sprefs = preferences('server');
@@ -41,12 +40,13 @@ sub handler {
 				next;
 			}
 
-			Plugins::Groups::Plugin::setPrefs($id, 'powerMaster', $params->{"powerMaster.$id"} ? 1 : 0);
-			Plugins::Groups::Plugin::setPrefs($id, 'powerPlay', $params->{"powerPlay.$id"} ? 1 : 0);
-			Plugins::Groups::Plugin::setPrefs($id, 'members', [ map {
-														/members.$id.(.+)/;
-														$1;
-														} grep /members.$id/, keys %$params ]);
+			my $client = Slim::Player::Client::getClient($id);
+			$client->setPrefs('powerMaster', $params->{"powerMaster.$id"} ? 1 : 0);
+			$client->setPrefs('powerPlay', $params->{"powerPlay.$id"} ? 1 : 0);
+			$client->setPrefs('members', [ map {
+										/members.$id.(.+)/;
+										$1;
+									} grep /members.$id/, keys %$params ]);
 		}
 		
 		if ((defined $params->{'newGroupName'}) && ($params->{'newGroupName'} ne '')) {
@@ -59,7 +59,7 @@ sub handler {
 
 	$params->{newGroupName} = undef;
 	$params->{players}      = makePlayerList();
-	$params->{groups}      = [ Plugins::Groups::Plugin::getPrefs ];
+	$params->{groups}      = [ Plugins::Groups::Plugin::allPrefs ];
 	
 	$log->debug("Groups::Settings->handler() done.");
 	

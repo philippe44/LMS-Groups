@@ -13,7 +13,7 @@ use Plugins::Groups::Plugin;
 use Plugins::Groups::StreamingController;
 
 my $prefs = preferences('plugin.groups');
-my $serverPrefs = preferences('server');
+my $sprefs = preferences('server');
 my $log = logger('plugin.groups');
 
 {
@@ -69,17 +69,17 @@ sub new {
 
 sub init {
 	my $client = shift;
-	my $syncGroupId = $serverPrefs->client($client)->get('syncgroupid');
+	my $syncGroupId = $sprefs->client($client)->get('syncgroupid');
 		
 	# make sure we are not synchronized with anybody and try to get rid of dynamic group
 	# if any, might not work if all players are not already connected. It's just a corner
 	# case when restarting the server, at least we'll never be slave of a group
 	foreach my $other (Slim::Player::Client::clients()) {
 		next if $other == $client;
-		my $otherMasterId = $serverPrefs->client($other)->get('syncgroupid');
+		my $otherMasterId = $sprefs->client($other)->get('syncgroupid');
 		$other->controller->unsync($other) if $otherMasterId && ($otherMasterId eq $syncGroupId);
 	}
-	$serverPrefs->client($client)->remove('syncgroupid');
+	$sprefs->client($client)->remove('syncgroupid');
 	
 	return $client->SUPER::init(@_);
 }
@@ -88,7 +88,7 @@ sub initPrefs {
 	my $client = shift;
 
 	# make sure any preferences unique to this client may not have set are set to the default
-	$serverPrefs->client($client)->init($defaultPrefs);
+	$sprefs->client($client)->init($defaultPrefs);
 	
 	$client->SUPER::initPrefs;
 }
@@ -175,6 +175,33 @@ sub power {
 		# $member->power($on, $noplay)
 		Slim::Control::Request::executeRequest($member, ['power', $on, $noplay]);
 	}
+}
+
+
+sub getPrefs {
+	my ($self, $key) = @_;
+	my $id = $self->id;
+	
+	# get prefs for a specific id (optionally for a specific key)
+	if ( defined $id ) {
+		my $cprefs = $sprefs->{clients}->{$id} || first { $_->{clientid} eq $id } $sprefs->allClients;
+		
+		return $cprefs->get($prefs->namespace)->{$key} if defined $key;
+		return $cprefs->get($prefs->namespace);
+	} 
+}
+
+sub setPrefs {
+	my ($self, $key, $value) = @_;
+	my $id = $self->id;
+	my $cprefs = $sprefs->{clients}->{$id} || first { $_->{clientid} eq $id } $sprefs->allClients;
+	my $nsprefs = $cprefs->get($prefs->namespace);
+	
+	# bulk setting
+	if (ref $key eq 'HASH') { %$nsprefs = (%$nsprefs, %$key) }
+	else { $nsprefs->{$key} = $value }	
+		
+	$cprefs->set($prefs->namespace, $nsprefs);
 }
 
 sub _Surrogate {
