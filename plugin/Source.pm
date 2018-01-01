@@ -13,6 +13,8 @@ use Slim::Utils::Log;
 
 my $log = logger('player.source');
 
+sub _groupOverload { 1 }
+
 # playmode - start playing, pause or stop
 sub playmode {
 	my ($client, $newmode, $seekdata, $reconnect, $fadeIn) = @_;
@@ -26,12 +28,16 @@ sub playmode {
 	main::INFOLOG && $log->is_info && $log->info('Custom Slim::Player::Source::playmode() called for Groups plugin');	
 	
 	if ($newmode eq 'stop') {
+		# BEGIN - added $client
 		$controller->stop($client);
+		# END
 	} elsif ($newmode eq 'play') {
 		if (!$client->power()) {$client->power(1);}
 		$controller->play(undef, $seekdata, $reconnect, $fadeIn);
 	} elsif ($newmode eq 'pause') {
+		# BEGIN - added $client
 		$controller->pause($client);
+		# END
 	} elsif ($newmode eq 'resume') {
 		if (!$client->power()) {$client->power(1);}
 		$controller->resume($fadeIn);
@@ -98,7 +104,9 @@ sub nextChunk {
 
 				# let everybody I'm synced with use this chunk, except the master if this is a group player 
 				foreach my $buddy ($controller->activePlayers()) {
+				# BEGIN - added only push is not Group
 					next if $client == $buddy || ($buddy == $master && $master->isa("Plugins::Groups::Player"));
+				# END	
 					push @{$buddy->chunks}, $chunk;
 				}
 				

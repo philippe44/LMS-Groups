@@ -24,7 +24,7 @@ sub page {
 }
 
 sub prefs {
-	return ($prefs, qw(restoreStatic));
+	return ($prefs, qw(restoreStatic showDisconnected));
 }
 
 sub handler {
@@ -47,6 +47,8 @@ sub handler {
 										/members.$id.(.+)/;
 										$1;
 									} grep /members.$id/, keys %$params ]);
+									
+			Plugins::Groups::Plugin::initVolume($client);
 		}
 		
 		if ((defined $params->{'newGroupName'}) && ($params->{'newGroupName'} ne '')) {
@@ -70,7 +72,7 @@ sub createId {
 	my $id;
 	
 	my $genMAC = sub {
-		sprintf("10:10:%02x:%02x:%02x:%02x", int(rand(255)), int(rand(255)), int(rand(255)), int(rand(255)));
+		sprintf("02:00:%02x:%02x:%02x:%02x", int(rand(255)), int(rand(255)), int(rand(255)), int(rand(255)));
 	};
 	
 	# create hash for quick lookup
@@ -87,10 +89,17 @@ sub createId {
 sub makePlayerList {
 	my @playerList = ();
 	
-	foreach my $client (Slim::Player::Client::clients()) {
-		my $player = { "name" => $client->name(), "id" => $client->id() };
-		push @playerList, $player if $client->model() ne 'group';
-	}
+	if ($prefs->get('showDisconnected')) {
+		foreach my $client ($sprefs->allClients) {
+			my $player = { "name" => $client->get('playername'), "id" => $client->{clientid} };
+			push @playerList, $player if !$client->exists($prefs->namespace)
+		}	
+	} else {	
+		foreach my $client (Slim::Player::Client::clients()) {
+			my $player = { "name" => $client->name(), "id" => $client->id() };
+			push @playerList, $player if $client->model() ne 'group';
+		}
+	}	
 	
 	@playerList = sort { lc($a->{'name'}) cmp lc($b->{'name'}) } @playerList;
 	

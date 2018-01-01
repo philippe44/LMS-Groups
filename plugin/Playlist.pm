@@ -10,11 +10,15 @@ use Slim::Utils::Log;
 
 my $log = logger('player.playlist');
 
+sub _groupOverload { 1 }
+
 sub stopAndClear {
 	my $client = shift;
 	
 	# Bug 11447 - Have to stop player and clear song queue
+	# BEGIN - added $client
 	$client->controller->stop($client);
+	# END	
 	$client->controller()->resetSongqueue();
 
 	@{playList($client)} = ();

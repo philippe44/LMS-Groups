@@ -18,6 +18,16 @@ PLUGIN_GROUPS_STARTING
 	EN	Starting Group Players
 	FR	Démarrage des Lecteurs Groupés
 	
+PLUGIN_GROUPS_SHOWDISCONNECTED
+	DE	Include disconnected players
+	EN	Include disconnected players
+	FR	Incllure les lecteurs déconnectés
+	
+PLUGIN_GROUPS_SHOWDISCONNECTED_DESC
+	DE	Show all players that this server has ever seen, even the disconnected ones
+	EN	Show all players that this server has ever seen, even the disconnected ones
+	FR	Montre tous les lecturs que ce server a vu, y compris les déconnectés
+	
 PLUGIN_GROUPS_NEWGROUP
 	DE	Neue Gruppe hinzufügen
 	EN	Add a new Group Player
@@ -55,13 +65,13 @@ PLUGIN_GROUPS_OPTIONS_DESC
 
 PLUGIN_GROUPS_OPTIONSPOWER
 	DE	Ein/Ausschalten
-	EN	Power on/off
-	FR	Allumé/Eteint
+	EN	Power on/off all with Group Player
+	FR	Allume/Eteint tout avec le Lecture de Groupe
 	
 PLUGIN_GROUPS_OPTIONSPOWERPLAY
 	DE	Mitglieder Ein beim Start
-	EN	Power members on play
-	FR	Allume les membres à la lecture
+	EN	Power on all on play
+	FR	Allume tout à la lecture
 	
 PLUGIN_GROUPS_OPTIONSVOLUME
 	DE	Lautstärke
@@ -70,10 +80,10 @@ PLUGIN_GROUPS_OPTIONSVOLUME
 
 PLUGIN_GROUPS_RESTORESTATIC
 	DE	Gruppen beim Ausschalten wieder herstellen
-	EN	Restore static groups at stop
-	FR	Rétablit les groupes pré-existants
+	EN	Restore permanent groups
+	FR	Rétablit les groupes permanents
 
 PLUGIN_GROUPS_RESTORESTATIC_DESC
-	EN	When a Group Player stops, members that belonged to a LMS group can be re-associated to it. They resume playing at next track
-	FR	Lorsqu'un Lecteur Groupé s'arrête, les membres appartenant permanent peuvent lui être ré-affectés. Ils ne recommenceront à jouer qu'à la piste suivante
+	EN	When a Group Player stops, members that belonged to a LMS permanent group can be re-associated to it. They will resume playing at next track
+	FR	Lorsqu'un Lecteur Groupé s'arrête, les membres appartenant à un groupe permanent peuvent lui être ré-affectés. Ils ne recommenceront à jouer qu'à la piste suivante
 

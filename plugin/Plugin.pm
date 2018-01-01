@@ -12,7 +12,6 @@ use Slim::Utils::Misc;
 use Slim::Utils::Log;
 use Slim::Utils::Prefs;
 use Slim::Player::StreamingController;
-use Data::Dumper;
 
 use Plugins::Groups::StreamingController qw(TRACK_END USER_STOP USER_PAUSE);
 
@@ -21,6 +20,8 @@ use Plugins::Groups::Source;
 # override default Slim::Player::Playlist::stopAndClear()
 use Plugins::Groups::Playlist;
 
+our $autoChunk = 0;
+
 my $log = Slim::Utils::Log->addLogCategory({
 	'category' => 'plugin.groups',
 	'defaultLevel' => 'ERROR',
@@ -28,36 +29,29 @@ my $log = Slim::Utils::Log->addLogCategory({
 });
 
 my $prefs = preferences('plugin.groups');
-my $serverPrefs = preferences('server');
 my $sprefs = preferences('server');
 my $originalVolumeHandler;
 
 $prefs->init({
 	restoreStatic => 1,
+	showDisconnected => 0,
 });
 
 # migrate existing prefs to new structure, bump prefs version by one tick
 # XXX - this code can probably be removed - only needed for beta testers
-$prefs->migrate(1, sub {
-	my $groups = $prefs->get('groups') || {};
+$prefs->migrate(2, sub {
+	foreach my $client ($prefs->allClients) {
+		my $cprefs = Slim::Utils::Prefs::Client->new( $sprefs, $client->{clientid}, 'no-migrate' );
+		if ($cprefs->exists('playername')) {
+			my %data = ( powerMaster => $client->get('syncPower'),
+						 powerPlay => $client->get('syncPowerPlay'),
+						 members => $client->get('members'),
+						); 
+			$cprefs->set($prefs->namespace, \%data);
 	
-	return unless ref $groups eq 'HASH';
-	# TODO: need to update
-	return;
-	
-	my @groups;
-	
-	# move all group prefs to a client pref object
-	foreach my $group (keys %$groups) {
-		my $cprefs = Slim::Utils::Prefs::Client->new( $prefs, $group, 'no-migrate' );
-		
-		while ( my ($k, $v) = each %{$groups->{$group}} ) {
-			next if $k eq 'name';
-			$cprefs->set($k, $v);
-		}
+		}	
+		$prefs->remove($Slim::Utils::Prefs::Client::clientPreferenceTag . ':' . $client->{clientid});
 	}
-	
-	$prefs->remove('groups');
 });
 
 sub getDisplayName() {
@@ -66,8 +60,12 @@ sub getDisplayName() {
 
 sub initPlugin {
 	my $class = shift;
-
+	
 	$log->info(string('PLUGIN_GROUPS_STARTING'));
+
+	$autoChunk = defined &Slim::Player::Source::_groupOverload;
+	$log->warn('cannot overload Slim::Player::Source ==> member stop will stop all group and chunks will be purged by timer') if !$autoChunk;
+	$log->warn('cannot overload Slim::Player::Playlist ==> member stop will stop all group') if !defined &Slim::Player::Playlist::_groupOverload;
 
 	if ( main::WEBUI ) {
 		require Plugins::Groups::Settings;
@@ -75,7 +73,7 @@ sub initPlugin {
 	}	
 
 	$class->initCLI();
-	
+		
 	foreach my $id ( $class->groupIDs() ) {
 		main::INFOLOG && $log->info("Creating player group $id");
 		createPlayer($id);
@@ -92,48 +90,90 @@ sub mixerVolumeCommand {
 	my $master = $client->controller->master;
 		
 	return $originalVolumeHandler->($request) unless $client->controller->isa("Plugins::Groups::StreamingController") &&
-													 $prefs->client($master)->get('syncVolume') &&
 													 !$master->_volumeDispatching;
-
-	my @group  = $client->syncedWith;
+	
+	my $members = $master->getPrefs('members');	
+	return $originalVolumeHandler->($request) unless scalar @$members;
+	
 	my $oldVolume = $client->volume;
 	$newVolume += $oldVolume if $newVolume =~ /^[\+\-]/;
 	
 	# avoid recursing loop				
 	$master->_volumeDispatching(1);			
 	
+	# get the memorized individual volumes
+	my $volumes = $master->getPrefs('volumes');
+		
 	$log->info("volume command $newVolume for $client with old volume $oldVolume (master = $master)");
 	
 	if ($client == $master) {
-		# when changing virtual player's volume, apply a ratio to all real players, unless the previous
-		# volume was zero, which means everybody has a fresh start
-		
-		foreach my $member (@group) {
-			my $memberVolume = $oldVolume ? $member->volume * $newVolume / $oldVolume : $newVolume;
-			$log->debug("new volume for $member $memberVolume");
-			Slim::Control::Request::executeRequest($member, ['mixer', 'volume', $memberVolume]);
+		# when changing virtual player's volume, apply a ratio to all members, 
+		# whether they are currently sync'd or not (except the missing ones)
+		foreach my $id (@$members) {
+			my $volume = $oldVolume ? $volumes->{$id} * $newVolume / $oldVolume : $newVolume;
+	
+			$volumes->{$id} = $volume;
+						
+			$log->debug("new volume for $id $volume");
+			
+			# only apply if member is connected & synchronized 
+			my $member = Slim::Player::Client::getClient($id);
+			Slim::Control::Request::executeRequest($member, ['mixer', 'volume', $volume]) if $member && $master->isSyncedWith($member);
 		}	
 	} else {
-		# when changing the volume of a member, need to feed that back to the virtual player so that it
-		# displays an average
+		# memorize volume in master's prefs
+		$volumes->{$client->id} = $newVolume;
+		my $masterVolume = 0;
 		
-		# take an average of the whole group, including ourselves but exclude virtual player
-		foreach my $player (@group) { 
-			next if $player == $master;
-			$log->debug("current volume of $player ", $player->volume());
-			$newVolume += $player->volume();
+		# the virtual is an average of all members' volumes
+		foreach my $id (@$members) { 
+			# do not use actual $member->volume as we might not be actually synced with it
+			$masterVolume += $volumes->{$id};
+			$log->debug("current volume of $id ", $volumes->{$id});
 		}
-		$newVolume /= scalar @group;
 		
-		$log->info("setting master volume from $client for $master at $newVolume");
+		$masterVolume /= scalar @$members;
+		
+		$log->info("setting master volume from $client for $master at $masterVolume");
 	
-		Slim::Control::Request::executeRequest($master, ['mixer', 'volume', $newVolume]) if $newVolume != $oldVolume;
+		Slim::Control::Request::executeRequest($master, ['mixer', 'volume', $masterVolume]);
 	}
+
+	# memorize volumes for when group will be re-assembled
+	$master->setPrefs('volumes', $volumes) if scalar @$members;
 	
 	# all dispatch done
 	$master->_volumeDispatching(0);	
 	
 	$originalVolumeHandler->($request);
+}
+
+sub initVolume {
+	my ($master) = @_;
+	my $masterVolume = 0;
+	my $members = $master->getPrefs('members');
+	my $volumes = $master->getPrefs('volumes');
+	
+	return unless scalar @$members;
+	
+	foreach my $id (@$members) {
+		my $member = Slim::Player::Client::getClient($id);
+
+		# initialize member's volume if possible & needed	
+		$volumes->{$id} = $member->volume if defined $member && !defined $volumes->{$id};
+		$masterVolume += $volumes->{$id};
+	}
+	
+	$master->setPrefs('volumes', $volumes);	
+	
+	# set master's volume
+	$masterVolume /= scalar @$members;
+	$log->info("new master volume $masterVolume");
+	
+	# this is init, so avoid loop in mixercommand (and can't rely on _volumeDispatching)
+	$master->volume($masterVolume);
+	$sprefs->client($master)->set('volume', $masterVolume);
+	Slim::Control::Request::executeRequest($master, ['mixer', 'volume', $masterVolume]);
 }
 
 sub createPlayer {

@@ -1,3 +1,8 @@
+0.2.0
+ - lot of refactoring
+ - volume memorization 
+ - groups are locked (cannot manually add/remove members)
+ 
 0.1.13
  - Volume increment management
  

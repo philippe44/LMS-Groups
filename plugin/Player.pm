@@ -26,6 +26,7 @@ our $defaultPrefs = {
 		'powerMaster' 	=> 1,
 		'powerPlay' 	=> 1,
 		'members'		=> [],
+		'volumes' 		=> {},
 		},	
 };	
 
@@ -153,7 +154,7 @@ sub power {
 	my $on     = shift;
 	my $noplay = shift;
 	
-	return $client->SUPER::power unless defined $on;
+	return $client->SUPER::power($on, $noplay) unless defined $on;
 	
 	# try to recover from silly user synchronizing a group as this cannot be prevented
 	if ( !$client->controller->isa("Plugins::Groups::StreamingController") ) {
@@ -161,22 +162,67 @@ sub power {
 		$log->error("GROUP CONTROLLER WAS INCORRECT ", $client->name);
 	}	
 	
-	# do normal stuff
-	$client->SUPER::power($on, $noplay);
+	# seems that members must be powered on/off before the following is executed
+	if ($client->getPrefs('powerMaster')) {
 	
-	return if !$prefs->client($client)->get('syncPower');
+		$log->info("powering $on all members for ", $client->name);
 	
-	$log->info("powering $on all members for ", $client->name);
+		# power on/off all connected members
+		foreach ( @{$client->getPrefs('members') || [] } )	{
+			my $member = Slim::Player::Client::getClient($_);
+			next unless $member;
+			# $member->power($on, $noplay)
+			Slim::Control::Request::executeRequest($member, ['power', $on, $noplay]);
+		}
+	}	
+
+=comment
+	code borrowed from Slim::Player::Player but that forces a controller stop 
+	in all cases. We *must* not just stop the virtual otherwise a real player
+	will become master and that'll be messy
+=cut	
+
+	my $resume = $sprefs->client($client)->get('powerOnResume');
+	$resume =~ /(.*)Off-(.*)On/;
+	my ($resumeOff, $resumeOn) = ($1,$2);
 	
-	# power on all connected members
-	foreach ( @{ $prefs->client($client)->get('members') || [] } )	{
-		my $member = Slim::Player::Client::getClient($_);
-		next unless $member;
-		# $member->power($on, $noplay)
-		Slim::Control::Request::executeRequest($member, ['power', $on, $noplay]);
+	my $controller = $client->controller();
+
+	if (!$on) {
+		my $playing = $controller->isPlaying(1);
+		$sprefs->client($client)->set('playingAtPowerOff', $playing);
+			
+		if ($playing && ($resumeOff eq 'Pause')) {
+			# Pause client mid track
+			$client->execute(["pause", 1, undef, 1]);
+		} elsif ($controller->isPaused() && ($resumeOff eq 'Pause')) {
+			# already paused, do nothing
+		} else {
+			$client->execute(["stop"]);
+		}
+	 	
+	 	# Do now, not earlier so that playmode changes still work
+	 	$sprefs->client($client)->set('power', $on); # Do now, not earlier so that 
+	} else {
+		$sprefs->client($client)->set('power', $on);
+		
+		# if this really needed? As a virtual, we can't be inactive 
+		$controller->playerActive($client);
+
+		if (!$controller->isPlaying() && !$noplay) {
+			
+			if ($resumeOn =~ /Reset/) {
+				# reset playlist to start, but don't start the playback yet
+				$client->execute(["playlist","jump", 0, 1, 1]);
+			}
+			
+			if ($resumeOn =~ /Play/ && Slim::Player::Playlist::song($client)
+				&& $sprefs->client($client)->get('playingAtPowerOff')) {
+				$client->execute(["play"]); # will resume if paused
+			}
+		}		
 	}
 }
-
 
 sub getPrefs {
 	my ($self, $key) = @_;

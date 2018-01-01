@@ -91,11 +91,13 @@ sub playerStatusHeartbeat {
 		
 	$log->debug("status heartbeat $client");
 	
-	# this is probably not strictly needed, but I'm not sure what happens with low
-	# bitrate file when the cleaning timer is at max but more chunks are added again
-	# because the player needs more ... that might cause queue stalling. By putting
-	# another cleanup here, it does not hurt and will take care or regulat cleaning
-	@{$client->master->chunks} = ();
+=comment	
+	this is probably not strictly needed, but I'm not sure what happens with low
+	bitrate file when the cleaning timer is at max but more chunks are added again
+	because the player needs more ... that might cause queue stalling. By putting
+	another cleanup here, it does not hurt and will take care or regulat cleaning
+=cut	
+	@{$client->master->chunks} = () if !$Plugins::Groups::Plugin::autoChunk;
 	
 	# send heartbeat on behalf of master
 	$self->SUPER::playerStatusHeartbeat($client->master) if $client == $surrogate;
@@ -145,7 +147,7 @@ sub stop {
 		
 		# unsync (do not keep syncid) and rejoin previously established groups
 		$self->SUPER::unsync($client);
-		_reJoin($client);
+		_detach($client);
 		
 		return undef;
 	} 
@@ -200,61 +202,80 @@ sub _chunksCleaner {
 sub doGroup {
 	my ($self, $resume) = @_;
 	my $master = $self->master;
+	my $masterVolume = 0;
+	my $members = $master->getPrefs('members') || return;
+	my $count = 0;
 	
-	foreach ( @{ Plugins::Groups::Plugin::getPrefs($master->id, 'members') || [] } ) {
+	my $volumes = $master->getPrefs('volumes');
+	
+	foreach (@$members) {
 		my $member = Slim::Player::Client::getClient($_);
 		next unless $member;
 		
-		$log->error("DOGROUP $member, ", $member->name);
-		
 		# power on all members if needed, only on first play, not on resume
-		Slim::Control::Request::executeRequest($member, ['power', 1, 1]) if !$resume && Plugins::Groups::Plugin::getPrefs($master->id, 'powerPlay');
-		
-		# if this player used to belong to a syncgroup, save it for later 
-		# restoration. Always set the restore id to something so that
-		# undoGroup does not create phantom groups (see header note)
-		my $syncGroupId = $sprefs->client($member)->get('syncgroupid') || -1;
-		$sprefs->client($member)->init( 'groups.syncgroupid' => $syncGroupId);
+		Slim::Control::Request::executeRequest($member, ['power', 1, 1]) if !$resume && $master->getPrefs('powerPlay');
 
+=comment		
+		if this player used to belong to a syncgroup, save it for later 
+		restoration. Always set the restore id to something so that
+		undoGroup does not create phantom groups (see header note)
+		FIXME: cannot find a way to erase / set to undef a pluginData key ...
+=cut		
+		my $syncGroupId = $sprefs->client($member)->get('syncgroupid') || -1;
+		$member->pluginData(syncgroupid => $syncGroupId) unless 
+						defined $member->pluginData('syncgroupid') && 
+						$member->pluginData('syncgroupid') != -1;
+		
 		$log->debug("sync ", $member->name, " to ", $master->name, " former syncgroup ", $syncGroupId);
 				
 		$self->SUPER::sync($member, $resume);
+		
+		# memorize and set volume of members, but only memorize the original one
+		my $volume = $member->pluginData('volume');
+		$member->pluginData(volume => $member->volume) if !defined($volume) || $volume == -1;
+		Slim::Control::Request::executeRequest($member, ['mixer', 'volume', $volumes->{$member->id}]);
 	}
 	
-	# safety mechanism in case the Slim::Player::Source::nextChunk has not been 
-	# overloaded properly. In theory, here is not the right place to start the 
-	# timer because if we pause, the timer will continue to grow and upon resume
-	# filling will restart on the Source that has the connection, will then be 
-	# stalled till we empty our queue, which might not happen before a while.
-	# But that does not happen as the group is broken up at every pause, so 
-	# we'll restart a fresh timer
-	Slim::Utils::Timers::setTimer($self, Time::HiRes::time() + CHUNK_MIN_TIMER, \&_chunksCleaner, CHUNK_MIN_TIMER);
+=comment	
+	safety mechanism in case the Slim::Player::Source::nextChunk has not been 
+	overloaded properly. In theory, here is not the right place to start the 
+	timer because if we pause, the timer will continue to grow and upon resume
+	filling will restart on the Source that has the connection, will then be 
+	stalled till we empty our queue, which might not happen before a while.
+	But that does not happen as the group is broken up at every pause, so 
+	we'll restart a fresh timer
+=cut	
+	Slim::Utils::Timers::setTimer($self, Time::HiRes::time() + CHUNK_MIN_TIMER, \&_chunksCleaner, CHUNK_MIN_TIMER) if !$Plugins::Groups::Plugin::autoChunk;
 }
 
 sub undoGroup {
 	my ($self, $kind) = @_;
 	my $master = $self->master;
-	
+		
 	# disassemble the group
 	foreach my $member ($master->syncedWith) {
 		$log->info("undo group sync for ", $member->name, " from ", $master->name);
 		$self->SUPER::unsync($member);
 
 		# rejoin previously established groups
-		_reJoin($member);
+		_detach($member);
 	}
 	
 	# can stop chunks cleanup timers
 	Slim::Utils::Timers::killTimers($self, \&_chunksCleaner);	
 }
 
-sub _reJoin {
+sub _detach {
 	my ($client) = @_;
 	
 	# 'make room' in memorized static group for next playback
-	my $syncGroupId = $sprefs->client($client)->get('groups.syncgroupid');
-	$sprefs->client($client)->remove('groups.syncgroupid');
-		
+	my $syncGroupId = $client->pluginData('syncgroupid');
+	$client->pluginData(syncgroupid => -1);
+	
+	# reset volume to previous value and free up room 
+	Slim::Control::Request::executeRequest($client, ['mixer', 'volume', $client->pluginData('volume')]);
+	$client->pluginData(volume => -1);
+			
 	# nothing to restore, just done
 	return unless $prefs->get('restoreStatic') && $syncGroupId != -1;
 		
@@ -268,9 +289,11 @@ sub _reJoin {
 		next if $other == $client;
 		my $otherMasterId = $sprefs->client($other)->get('syncgroupid');
 
-		# always re-sync in no-restart but power-off if other is playing	
-		$other->controller->sync($client, 1) if ($otherMasterId && ($otherMasterId eq $syncGroupId));
-		Slim::Control::Request::executeRequest($client, ['power', 0]) if !$other->isStopped;
+		if ($otherMasterId && ($otherMasterId eq $syncGroupId)) {
+			$other->controller->sync($client, 1);
+			# power-off if other is playing	to avoid member to play when virtual stops
+			Slim::Control::Request::executeRequest($client, ['power', 0]) if !$other->isStopped;
+		}	
 	}
 }
 
@@ -278,11 +301,9 @@ sub sync {
 	my $self = shift;
 	my ($player) = @_;
 	
-=comment	
-	# do not add members manually
-	$log->error("can't add members to a group manuall");
+	# do not manaually add members
+	$log->error("can't manually add members to a group");
 	return; 
-=cut
 
 	return $self->SUPER::sync(@_);
 }
@@ -292,14 +313,14 @@ sub unsync {
 	my ($player, $keepSyncGroupId) = @_;
 	
 	# do not manually remove members
-	if ( caller(0) !~ m/Plugins::Group/ ) {
-		$log->error("can't remove members of a group manually");
+	if ( caller(0) =~ m/Commands/) {
+		$log->error("can't manually remove members from a group ");
 		return;
 	}
 	
 	# do not unsync a Group player! (this means it's beeing synced with another controller)
-	# TODO: still need to make sure the unsync is always called for a group which means add a phantom non-connected player
-	# and add a "magic" so taht we know unsync was called from 
+	# TODO: still need to make sure the unsync is always called for a group which means add 
+	# a fantom non-connected player
 	if ( $player->isa("Plugins::Groups::Player") && scalar @{ $self->{'players'} } > 1) {
 		$log->error("can't remove ourselves from own group");
 		return;
