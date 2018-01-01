@@ -60,7 +60,7 @@ sub handler {
 	}
 
 	$params->{newGroupName} = undef;
-	$params->{players}      = makePlayerList();
+	$params->{players}      = makePlayerList($params->{pref_showDisconnected});
 	$params->{groups}      = [ Plugins::Groups::Plugin::allPrefs ];
 	
 	$log->debug("Groups::Settings->handler() done.");
@@ -87,9 +87,10 @@ sub createId {
 }
 
 sub makePlayerList {
+	my $showDisconnected = shift;
 	my @playerList = ();
 	
-	if ($prefs->get('showDisconnected')) {
+	if ($showDisconnected) {
 		foreach my $client ($sprefs->allClients) {
 			my $player = { "name" => $client->get('playername'), "id" => $client->{clientid} };
 			push @playerList, $player if !$client->exists($prefs->namespace)
