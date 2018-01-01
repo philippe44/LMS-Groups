@@ -1,3 +1,6 @@
+0.2.1
+ - virtual queue was not emptied in some corner case, stalling the whole group
+ 
 0.2.0
  - lot of refactoring
  - volume memorization 

@@ -12,6 +12,7 @@ package Slim::Player::Source;
 use Slim::Utils::Log;
 
 my $log = logger('player.source');
+my $prefs = preferences('server');
 
 sub _groupOverload { 1 }
 
@@ -105,7 +106,7 @@ sub nextChunk {
 				# let everybody I'm synced with use this chunk, except the master if this is a group player 
 				foreach my $buddy ($controller->activePlayers()) {
 				# BEGIN - added only push is not Group
-					next if $client == $buddy || ($buddy == $master && $master->isa("Plugins::Groups::Player"));
+					next if $client == $buddy || $buddy->isa("Plugins::Groups::Player");
 				# END	
 					push @{$buddy->chunks}, $chunk;
 				}
@@ -160,6 +161,137 @@ sub nextChunk {
 	}
 
 	return $chunk;
+}
+
+sub _readNextChunk {
+	my $client = shift;
+	my $givenChunkSize = shift;
+	my $callback = shift;
+	
+	if (!defined($givenChunkSize)) {
+		$givenChunkSize = $prefs->get('udpChunkSize') * 10;
+	} 
+
+	my $chunksize = $givenChunkSize;
+
+	my $chunk  = '';
+
+	my $endofsong = undef;
+
+	if ($client->streamBytes() == 0 && $client->streamformat() eq 'mp3') {
+	
+		my $silence = 0;
+		# use the maximum silence prelude for the whole sync group...
+		foreach my $buddy ($client->syncGroupActiveMembers()) {
+
+			my $asilence = $prefs->client($buddy)->get('mp3SilencePrelude');
+
+			if ($asilence && ($asilence > $silence)) {
+				$silence = $asilence;
+			}
+		}
+		
+		0 && $log->debug("We need to send $silence seconds of silence...");
+		
+		while ($silence > 0) {
+			$chunk .=  ${Slim::Web::HTTP::getStaticContent("html/lbrsilence.mp3")};
+			$silence -= (1152 / 44100);
+		}
+		
+		my $len = length($chunk);
+		
+		main::DEBUGLOG && $log->debug("Sending $len bytes of silence.");
+		
+		$client->streamBytes($len);
+		
+		return \$chunk if ($len);
+	}
+
+	my $fd = $client->controller()->songStreamController() ? $client->controller()->songStreamController()->streamHandler() : undef;
+	
+	if ($fd) {
+
+		if ($chunksize > 0) {
+
+			my $readlen = $fd->sysread($chunk, $chunksize);
+
+			if (!defined($readlen)) { 
+				if ($! == EWOULDBLOCK) {
+					# $log->debug("Would have blocked, will try again later.");
+					if ($callback) {
+						# This is a hack but I hesitate to use isa(Pileline) or similar.
+						# Suggestions for better, efficient implementation welcome
+						Slim::Networking::Select::addRead(${*$fd}{'pipeline_reader'} || $fd, sub {_wakeupOnReadable(shift, $client);}, 1);
+					}
+					return undef;	
+				} elsif ($! == EINTR) {
+					main::DEBUGLOG && $log->debug("Got EINTR, will try again later.");
+					return undef;
+				} elsif ($! == ECHILD) {
+					main::DEBUGLOG && $log->debug("Got ECHILD - will try again later.");
+					return undef;
+				} else {
+					main::DEBUGLOG && $log->debug("readlen undef: ($!) " . ($! + 0));
+					$endofsong = 1; 
+				}	
+			} elsif ($readlen == 0) { 
+				main::DEBUGLOG && $log->debug("Read to end of file or pipe");  
+				$endofsong = 1;
+			} else {
+				# too verbose
+				# $log->debug("Read $readlen bytes from source");
+			}
+		}
+
+	} else {
+		0 && $log->debug($client->id, ": No filehandle to read from, returning no chunk.");
+		return undef;
+	}
+
+	# if nothing was read from the filehandle, then we're done with it,
+	# so open the next filehandle.
+bail:
+	if ($endofsong) {
+
+		if ( main::INFOLOG && $log->is_info ) {
+			my $msg = "end of file or error on socket, song pos: " . $client->songBytes;
+			$msg .= ", tell says: " . systell($fd) . ", totalbytes: "
+					 . $client->controller()->songStreamController()->song()->totalbytes()
+				if $fd->isa('Slim::Player::Protocols::File');
+			$log->info($msg);
+		}
+
+		# Mark the end of stream
+		for my $buddy ($client->syncGroupActiveMembers()) {
+			main::INFOLOG && $log->info($buddy->id() . " mark end of stream");
+			# BEGIN - added only push is not Group
+			next if $buddy->isa("Plugins::Groups::Player");
+			# END	
+			push @{$buddy->chunks}, \'';
+		}
+
+		if ($client->streamBytes() == 0 && $client->reportsTrackStart()) {
+
+			# If we haven't streamed any bytes, then it is most likely an error
+
+			main::INFOLOG && $log->info("Didn't stream any bytes for this song; mark it as failed");
+			$client->controller()->playerStreamingFailed($client);
+			return;
+		}
+		
+		$client->controller()->localEndOfStream();
+		
+		return undef;
+	}
+
+	my $chunkLength = length($chunk);
+
+	if ($chunkLength > 0) {
+		$client->songBytes($client->songBytes() + $chunkLength);
+		$client->streamBytes($client->streamBytes() + $chunkLength);
+	}
+
+	return \$chunk;
 }
 
 		

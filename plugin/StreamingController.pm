@@ -20,7 +20,7 @@ is set to current syncgroup if any, otherwise it is set to -1. It's because
 when a player is member of more than one virtual that were both playing 
 (first 1 then 2), we don't want it to re-join the 1st virtual when the 2nd
 stops, it must rejoin the inital syncgroup, if any. It would be especially
-bad if the 1st virtual has stopped because it would create a phatom group
+bad if the 1st virtual has stopped because it would create a fantom group
 To have such player re-join the 1st virtual, then play something on it!
 
 When a virtual stops, all *still* synchronized members re-join their 
@@ -218,7 +218,7 @@ sub doGroup {
 =comment		
 		if this player used to belong to a syncgroup, save it for later 
 		restoration. Always set the restore id to something so that
-		undoGroup does not create phantom groups (see header note)
+		undoGroup does not create fantom groups (see header note)
 		FIXME: cannot find a way to erase / set to undef a pluginData key ...
 =cut		
 		my $syncGroupId = $sprefs->client($member)->get('syncgroupid') || -1;

@@ -122,7 +122,16 @@ sub playPoint {
 
 sub rebuffer {
 	my $client = shift;
+	
+	# make sure we don't block the others
 	$client->bufferReady(1);
+	
+	# I don't think this is strictly necessary as other players will move the 
+	# controler to buffer ready state
+	Slim::Utils::Timers::setTimer( $client,	Time::HiRes::time() + 0.125, sub {
+						$client->controller->playerBufferReady($client);
+						}
+		);
 }
 
 sub play {
