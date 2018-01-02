@@ -39,18 +39,17 @@ $prefs->init({
 
 # migrate existing prefs to new structure, bump prefs version by one tick
 # XXX - this code can probably be removed - only needed for beta testers
-$prefs->migrate(2, sub {
-	foreach my $client ($prefs->allClients) {
-		my $cprefs = Slim::Utils::Prefs::Client->new( $sprefs, $client->{clientid}, 'no-migrate' );
-		if ($cprefs->exists('playername')) {
-			my %data = ( powerMaster => $client->get('syncPower'),
-						 powerPlay => $client->get('syncPowerPlay'),
-						 members => $client->get('members'),
-						); 
-			$cprefs->set($prefs->namespace, \%data);
-	
+$prefs->migrate(3, sub {
+	my @migrate = ( 'powerMaster', 'powerPlay', 'members', 'volumes' );
+
+	foreach my $client ($sprefs->allClients) {
+		next unless $client->exists($prefs->namespace);
+		my $cprefs = Slim::Utils::Prefs::Client->new( $prefs, $client->{clientid}, 'no-migrate' );
+		my $data = $client->get($prefs->namespace);
+		foreach my $key (@migrate) { 
+			$cprefs->set($key, $data->{$key});
 		}	
-		$prefs->remove($Slim::Utils::Prefs::Client::clientPreferenceTag . ':' . $client->{clientid});
+		$client->remove($prefs->namespace);
 	}
 });
 
@@ -92,7 +91,7 @@ sub mixerVolumeCommand {
 	return $originalVolumeHandler->($request) unless $client->controller->isa("Plugins::Groups::StreamingController") &&
 													 !$master->_volumeDispatching;
 	
-	my $members = $master->getPrefs('members');	
+	my $members = $prefs->client($master)->get('members');	
 	return $originalVolumeHandler->($request) unless scalar @$members;
 	
 	my $oldVolume = $client->volume;
@@ -102,7 +101,7 @@ sub mixerVolumeCommand {
 	$master->_volumeDispatching(1);			
 	
 	# get the memorized individual volumes
-	my $volumes = $master->getPrefs('volumes');
+	my $volumes = $prefs->client($master)->get('volumes');
 		
 	$log->info("volume command $newVolume for $client with old volume $oldVolume (master = $master)");
 	
@@ -140,7 +139,7 @@ sub mixerVolumeCommand {
 	}
 
 	# memorize volumes for when group will be re-assembled
-	$master->setPrefs('volumes', $volumes) if scalar @$members;
+	$prefs->client($master)->set('volumes', $volumes) if scalar @$members;
 	
 	# all dispatch done
 	$master->_volumeDispatching(0);	
@@ -149,10 +148,10 @@ sub mixerVolumeCommand {
 }
 
 sub initVolume {
-	my ($master) = @_;
+	my $master = Slim::Player::Client::getClient($_[0]);
 	my $masterVolume = 0;
-	my $members = $master->getPrefs('members');
-	my $volumes = $master->getPrefs('volumes');
+	my $members = $prefs->client($master)->get('members');
+	my $volumes = $prefs->client($master)->get('volumes');
 	
 	return unless scalar @$members;
 	
@@ -164,7 +163,7 @@ sub initVolume {
 		$masterVolume += $volumes->{$id};
 	}
 	
-	$master->setPrefs('volumes', $volumes);	
+	$prefs->client($master)->set('volumes', $volumes);	
 	
 	# set master's volume
 	$masterVolume /= scalar @$members;
@@ -259,9 +258,9 @@ sub _cliGroups {
 		
 		$request->addResultLoop($loopname, $chunkCount, 'id', $group);				
 		$request->addResultLoop($loopname, $chunkCount, 'name', $groupClient->name);
-		$request->addResultLoop($loopname, $chunkCount, 'powerMaster', $groupClient->getPrefs('powerMaster'));
-		$request->addResultLoop($loopname, $chunkCount, 'powerPlay', $groupClient->getPrefs('powerPlay'));
-		$request->addResultLoop($loopname, $chunkCount, 'players', scalar @{ $groupClient->getPrefs('members') || [ ]});
+		$request->addResultLoop($loopname, $chunkCount, 'powerMaster', $prefs->client($groupClient)->get('powerMaster'));
+		$request->addResultLoop($loopname, $chunkCount, 'powerPlay', $prefs->client($groupClient)->get('powerPlay'));
+		$request->addResultLoop($loopname, $chunkCount, 'players', scalar @{ $prefs->client($groupClient)->get('members') || [ ]});
 		
 		$chunkCount++;
 	}
@@ -287,13 +286,13 @@ sub _cliGroup {
 	}
 	
 	$request->addResult('name', $client->name);
-	$request->addResult('powerMaster', $client->getPrefs('powerMaster'));
-	$request->addResult('powerPlay', $client->getPrefs('powerPlay'));
+	$request->addResult('powerMaster', $prefs->client($client)->get('powerMaster'));
+	$request->addResult('powerPlay', $prefs->client($client)->get('powerPlay'));
 	
 	my $loopname = 'players_loop';
 	my $chunkCount = 0;
 	
-	foreach my $player ( @{ $client->getPrefs('members') || [] } ) {
+	foreach my $player ( @{ $prefs->client($client)->get('members') || [] } ) {
 		$request->addResultLoop($loopname, $chunkCount, 'id', $player);
 
 		if ( my $member = Slim::Player::Client::getClient($player) ) {
@@ -306,12 +305,11 @@ sub _cliGroup {
 }
 
 sub allPrefs {
-	return map { {clientid => $_->{clientid}, %{$_->get($prefs->namespace)}} 
-		} grep { $_->exists($prefs->namespace) } $sprefs->allClients;
+	return map { {clientid => $_->{clientid}, %{$_->all}} } $prefs->allClients;
 }
 		
 sub groupIDs {
-	return map { $_->{clientid} } grep { $_->exists($prefs->namespace) } $sprefs->allClients;
+	return map { $_->{clientid} } $prefs->allClients;
 }
 
 

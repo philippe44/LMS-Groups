@@ -203,17 +203,15 @@ sub doGroup {
 	my ($self, $resume) = @_;
 	my $master = $self->master;
 	my $masterVolume = 0;
-	my $members = $master->getPrefs('members') || return;
-	my $count = 0;
-	
-	my $volumes = $master->getPrefs('volumes');
+	my $members = $prefs->client($master)->get('members') || return;
+	my $volumes = $prefs->client($master)->get('volumes');
 	
 	foreach (@$members) {
 		my $member = Slim::Player::Client::getClient($_);
 		next unless $member;
 		
 		# power on all members if needed, only on first play, not on resume
-		Slim::Control::Request::executeRequest($member, ['power', 1, 1]) if !$resume && $master->getPrefs('powerPlay');
+		Slim::Control::Request::executeRequest($member, ['power', 1, 1]) if !$resume && $prefs->client($master)->get('powerPlay');
 
 =comment		
 		if this player used to belong to a syncgroup, save it for later 

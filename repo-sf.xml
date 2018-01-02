@@ -1,14 +1,14 @@
 <?xml version='1.0' standalone='yes'?>
 <extensions>
   <plugins>
-    <plugin maxTarget="7.*" minTarget="7.7" name="Groups" version="0.2.1">
-      <desc lang="EN">on-the-fly group creation</desc>
-      <sha>15c96d72d1cd25a9a64be0901c8e2fd360357cfb</sha>
-      <url>http://downloads.sourceforge.net/project/lms-groups/dev/Groups-0.2.1.zip</url>
+    <plugin minTarget="7.7" name="Groups" version="0.2.2" maxTarget="7.*">
+      <title lang="EN">Group Players</title>
       <creator>Philippe</creator>
+      <url>http://downloads.sourceforge.net/project/lms-groups/dev/Groups-0.2.2.zip</url>
       <link>http://github.com/philippe44/LMS-Groups</link>
       <email>philippe_44@outlook.com</email>
-      <title lang="EN">Group Players</title>
+      <desc lang="EN">on-the-fly group creation</desc>
+      <sha>ab6bca77d63ee3177bcef27c2eae1fbfb0e992bb</sha>
     </plugin>
   </plugins>
   <details>

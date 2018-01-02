@@ -7,6 +7,7 @@ use Slim::Utils::Strings qw (string);
 use Slim::Utils::Misc;
 use Slim::Utils::Log;
 use Slim::Utils::Prefs;
+
 use Plugins::Groups::Plugin;
 use Plugins::Groups::Player;
 
@@ -34,21 +35,23 @@ sub handler {
 	
 	if ($params->{saveSettings}) {
 		foreach my $id ( Plugins::Groups::Plugin->groupIDs() ) {
+		
+			my $cprefs = Slim::Utils::Prefs::Client->new( $prefs, $id, 'no-migrate' );
 	
 			if ($params->{"delete.$id"}) {
+				$prefs->remove($Slim::Utils::Prefs::Client::clientPreferenceTag . ':' . $id);
 				Plugins::Groups::Plugin::delPlayer($id);
 				next;
 			}
 
-			my $client = Slim::Player::Client::getClient($id);
-			$client->setPrefs('powerMaster', $params->{"powerMaster.$id"} ? 1 : 0);
-			$client->setPrefs('powerPlay', $params->{"powerPlay.$id"} ? 1 : 0);
-			$client->setPrefs('members', [ map {
+			$cprefs->set('powerMaster', $params->{"powerMaster.$id"} ? 1 : 0);
+			$cprefs->set('powerPlay', $params->{"powerPlay.$id"} ? 1 : 0);
+			$cprefs->set('members', [ map {
 										/members.$id.(.+)/;
 										$1;
 									} grep /members.$id/, keys %$params ]);
 									
-			Plugins::Groups::Plugin::initVolume($client);
+			Plugins::Groups::Plugin::initVolume($id);
 		}
 		
 		if ((defined $params->{'newGroupName'}) && ($params->{'newGroupName'} ne '')) {
@@ -91,15 +94,20 @@ sub makePlayerList {
 	my @playerList = ();
 	
 	if ($showDisconnected) {
+		my @groups = Plugins::Groups::Plugin->groupIDs;
+		
 		foreach my $client ($sprefs->allClients) {
 			my $player = { "name" => $client->get('playername'), "id" => $client->{clientid} };
-			push @playerList, $player if !$client->exists($prefs->namespace)
+			push @playerList, $player unless grep { $_ eq $client->{clientid} } @groups;
 		}	
+		
 	} else {	
+	
 		foreach my $client (Slim::Player::Client::clients()) {
 			my $player = { "name" => $client->name(), "id" => $client->id() };
 			push @playerList, $player if $client->model() ne 'group';
 		}
+		
 	}	
 	
 	@playerList = sort { lc($a->{'name'}) cmp lc($b->{'name'}) } @playerList;

@@ -21,12 +21,12 @@ PLUGIN_GROUPS_STARTING
 PLUGIN_GROUPS_SHOWDISCONNECTED
 	DE	Include disconnected players
 	EN	Include disconnected players
-	FR	Incllure les lecteurs déconnectés
+	FR	Inclure les lecteurs déconnectés
 	
 PLUGIN_GROUPS_SHOWDISCONNECTED_DESC
-	DE	Show all players that this server has ever seen, even the disconnected ones
-	EN	Show all players that this server has ever seen, even the disconnected ones
-	FR	Montre tous les lecturs que ce server a vu, y compris les déconnectés
+	DE	Show all players, including disconnected ones
+	EN	Show all players, including disconnected ones
+	FR	Montre tous les lecteurs, incluant ceux qui sont déconnectés
 	
 PLUGIN_GROUPS_NEWGROUP
 	DE	Neue Gruppe hinzufügen
@@ -81,7 +81,7 @@ PLUGIN_GROUPS_OPTIONSVOLUME
 PLUGIN_GROUPS_RESTORESTATIC
 	DE	Gruppen beim Ausschalten wieder herstellen
 	EN	Restore permanent groups
-	FR	Rétablit les groupes permanents
+	FR	Rétablir les groupes permanents
 
 PLUGIN_GROUPS_RESTORESTATIC_DESC
 	EN	When a Group Player stops, members that belonged to a LMS permanent group can be re-associated to it. They will resume playing at next track

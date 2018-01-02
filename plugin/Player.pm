@@ -20,16 +20,6 @@ my $log = logger('plugin.groups');
 	__PACKAGE__->mk_accessor('rw', qw(_volumeDispatching));
 }
 
-our $defaultPrefs = {
-	'maxBitrate'	=> 0,
-	$prefs->namespace	=> {	
-		'powerMaster' 	=> 1,
-		'powerPlay' 	=> 1,
-		'members'		=> [],
-		'volumes' 		=> {},
-		},	
-};	
-
 sub model { "group" }
 sub modelName { "Group" }
 sub formats { qw(wma ogg flc aif pcm mp3) }
@@ -89,7 +79,17 @@ sub initPrefs {
 	my $client = shift;
 
 	# make sure any preferences unique to this client may not have set are set to the default
-	$sprefs->client($client)->init($defaultPrefs);
+	$sprefs->client($client)->init( {
+		'maxBitrate'	=> 0,
+	});
+	
+	# then init our own prefs
+	$prefs->client($client)->init({
+		'powerMaster' 	=> 1,
+		'powerPlay' 	=> 1,
+		'members'		=> [],
+		'volumes' 		=> {},
+	});
 	
 	$client->SUPER::initPrefs;
 }
@@ -172,12 +172,12 @@ sub power {
 	}	
 	
 	# seems that members must be powered on/off before the following is executed
-	if ($client->getPrefs('powerMaster')) {
+	if ($prefs->client($client)->get('powerMaster')) {
 	
 		$log->info("powering $on all members for ", $client->name);
 	
 		# power on/off all connected members
-		foreach ( @{$client->getPrefs('members') || [] } )	{
+		foreach ( @{$prefs->client($client)->get('members') || [] } )	{
 			my $member = Slim::Player::Client::getClient($_);
 			next unless $member;
 			# $member->power($on, $noplay)
@@ -233,6 +233,7 @@ sub power {
 	}
 }
 
+=comment
 sub getPrefs {
 	my ($self, $key) = @_;
 	my $id = $self->id;
@@ -258,6 +259,7 @@ sub setPrefs {
 		
 	$cprefs->set($prefs->namespace, $nsprefs);
 }
+=cut
 
 sub _Surrogate {
 	my $client = shift;
