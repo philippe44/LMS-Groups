@@ -97,8 +97,9 @@ sub makePlayerList {
 		my @groups = Plugins::Groups::Plugin->groupIDs;
 		
 		foreach my $client ($sprefs->allClients) {
+			next if grep { $_ eq $client->{clientid} } @groups;
 			my $player = { "name" => $client->get('playername'), "id" => $client->{clientid} };
-			push @playerList, $player unless grep { $_ eq $client->{clientid} } @groups;
+			push @playerList, $player if $player->{name};
 		}	
 		
 	} else {	
