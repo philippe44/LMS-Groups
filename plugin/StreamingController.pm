@@ -193,7 +193,7 @@ sub _chunksCleaner {
 	# need to set a max because lowrate mp3 might cause us to sleep for a very long time but queue 
 	# should resume at some point
 	$timer = min(max($timer * CHUNK_QUEUED_AWM / ($chunks || CHUNK_QUEUED_AWM * 0.66), CHUNK_MIN_TIMER), CHUNK_MAX_TIMER);
-	$log->info("$chunks chunks => sleep $timer");
+	$log->debug("$chunks chunks => sleep $timer");
 	
 	# restart ourselves - this timer will be terminated by undoGroup
 	Slim::Utils::Timers::setTimer($self, Time::HiRes::time() + $timer, \&_chunksCleaner, $timer);
@@ -201,6 +201,10 @@ sub _chunksCleaner {
 
 sub doGroup {
 	my ($self, $resume) = @_;
+		
+	# we might already be assembled if a pause came from a single player
+	return if scalar @{ $self->{'allPlayers'} } > 1;
+	
 	my $master = $self->master;
 	my $masterVolume = 0;
 	my $members = $prefs->client($master)->get('members') || return;
@@ -211,7 +215,9 @@ sub doGroup {
 		next unless $member;
 		
 		# power on all members if needed, only on first play, not on resume
-		Slim::Control::Request::executeRequest($member, ['power', 1, 1]) if !$resume && $prefs->client($master)->get('powerPlay');
+		# unless it was forced off
+		Slim::Control::Request::executeRequest($member, ['power', 1, 1]) 
+			if $prefs->client($master)->get('powerPlay') && (!$resume || $member->pluginData('forcedPowerOff'));
 
 =comment		
 		if this player used to belong to a syncgroup, save it for later 
@@ -219,12 +225,12 @@ sub doGroup {
 		undoGroup does not create fantom groups (see header note)
 		FIXME: cannot find a way to erase / set to undef a pluginData key ...
 =cut		
-		my $syncGroupId = $sprefs->client($member)->get('syncgroupid') || -1;
+		my $syncGroupId = $sprefs->client($member)->get('syncgroupid') // -1;
 		$member->pluginData(syncgroupid => $syncGroupId) unless 
 						defined $member->pluginData('syncgroupid') && 
 						$member->pluginData('syncgroupid') != -1;
 		
-		$log->debug("sync ", $member->name, " to ", $master->name, " former syncgroup ", $syncGroupId);
+		$log->info("sync ", $member->name, " to ", $master->name, " former syncgroup ", $syncGroupId);
 				
 		$self->SUPER::sync($member, $resume);
 		
@@ -273,13 +279,14 @@ sub _detach {
 	# reset volume to previous value and free up room 
 	Slim::Control::Request::executeRequest($client, ['mixer', 'volume', $client->pluginData('volume')]);
 	$client->pluginData(volume => -1);
-			
+	
+	# erase forced power off sequence
+	$client->pluginData(forcedPowerOff => 0);
+				
 	# nothing to restore, just done
 	return unless $prefs->get('restoreStatic') && $syncGroupId != -1;
 		
 	# restore static group if any
-	$log->info("restore static group $syncGroupId for ", $client->name);
-			
 	$sprefs->client($client)->set('syncgroupid', $syncGroupId);
 			
 	# parse all players for a matching group but do not restart if it plays
@@ -289,8 +296,14 @@ sub _detach {
 
 		if ($otherMasterId && ($otherMasterId eq $syncGroupId)) {
 			$other->controller->sync($client, 1);
-			# power-off if other is playing	to avoid member to play when virtual stops
-			Slim::Control::Request::executeRequest($client, ['power', 0]) if !$other->isStopped;
+			$log->info("restore static ", $client->name, " with ", $other->name, " group $syncGroupId");
+			# power-off if other is playing	to avoid member to play when virtual 
+			# stops and memorize that forced power off
+			if (!$other->isStopped) {
+				Slim::Control::Request::executeRequest($client, ['power', 0]);
+				$client->pluginData(forcedPowerOff => 1);				
+			}	
+			last;
 		}	
 	}
 }

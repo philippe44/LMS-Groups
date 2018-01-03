@@ -33,9 +33,11 @@ my $sprefs = preferences('server');
 my $originalVolumeHandler;
 
 $prefs->init({
-	restoreStatic => 1,
+	# can't set prefs at a true value for checkboxes (unchecked = undef)
+	# restoreStatic => 1,
 	showDisconnected => 0,
 });
+
 
 # migrate existing prefs to new structure, bump prefs version by one tick
 # XXX - this code can probably be removed - only needed for beta testers
@@ -61,6 +63,8 @@ sub initPlugin {
 	my $class = shift;
 	
 	$log->info(string('PLUGIN_GROUPS_STARTING'));
+	
+	$prefs->set('restoreStatic', 1) unless $prefs->exits('restoreStatic');
 
 	$autoChunk = defined &Slim::Player::Source::_groupOverload;
 	$log->warn('cannot overload Slim::Player::Source ==> member stop will stop all group and chunks will be purged by timer') if !$autoChunk;

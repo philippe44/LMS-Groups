@@ -70,7 +70,7 @@ PLUGIN_GROUPS_OPTIONSPOWER
 	
 PLUGIN_GROUPS_OPTIONSPOWERPLAY
 	DE	Mitglieder Ein beim Start
-	EN	Power on all on play
+	EN	Power all on play
 	FR	Allume tout à la lecture
 	
 PLUGIN_GROUPS_OPTIONSVOLUME
