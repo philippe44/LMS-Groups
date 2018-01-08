@@ -58,10 +58,6 @@ use constant TRACK_END	=> 0x0000;
 use constant USER_STOP 	=> 0x0001;
 use constant USER_PAUSE => 0x0002;
 
-use constant CHUNK_QUEUED_AWM	 => 5;
-use constant CHUNK_MIN_TIMER 	=> 0.05;
-use constant CHUNK_MAX_TIMER 	=> 30;
-
 my $prefs = preferences('plugin.groups');
 my $sprefs = preferences('server');
 my $log   = logger('plugin.groups');
@@ -90,14 +86,6 @@ sub playerStatusHeartbeat {
 	my $surrogate = _Surrogate($self);
 		
 	$log->debug("status heartbeat $client");
-	
-=comment	
-	this is probably not strictly needed, but I'm not sure what happens with low
-	bitrate file when the cleaning timer is at max but more chunks are added again
-	because the player needs more ... that might cause queue stalling. By putting
-	another cleanup here, it does not hurt and will take care or regulat cleaning
-=cut	
-	@{$client->master->chunks} = () if !$Plugins::Groups::Plugin::autoChunk;
 	
 	# send heartbeat on behalf of master
 	$self->SUPER::playerStatusHeartbeat($client->master) if $client == $surrogate;
@@ -184,25 +172,6 @@ sub pause {
 	return $self->SUPER::pause(@_);
 }
 
-sub _chunksCleaner {
-	my ($self, $timer) = @_;
-
-	# make sure we don't run multiple timers for this call
-	Slim::Utils::Timers::killTimers($self, \&_chunksCleaner);	
-
-	my $chunks = scalar @{$self->master->chunks};
-
-	@{$self->master->chunks} = ();
-	
-	# need to set a max because lowrate mp3 might cause us to sleep for a very long time but queue 
-	# should resume at some point
-	$timer = min(max($timer * CHUNK_QUEUED_AWM / ($chunks || CHUNK_QUEUED_AWM * 0.66), CHUNK_MIN_TIMER), CHUNK_MAX_TIMER);
-	$log->debug("$chunks chunks => sleep $timer");
-	
-	# restart ourselves - this timer will be terminated by undoGroup
-	Slim::Utils::Timers::setTimer($self, Time::HiRes::time() + $timer, \&_chunksCleaner, $timer);
-}
-
 sub doGroup {
 	my ($self, $resume) = @_;
 		
@@ -243,17 +212,6 @@ sub doGroup {
 		$member->pluginData(volume => $member->volume) if !defined($volume) || $volume == -1;
 		Slim::Control::Request::executeRequest($member, ['mixer', 'volume', $volumes->{$member->id}]);
 	}
-	
-=comment	
-	safety mechanism in case the Slim::Player::Source::nextChunk has not been 
-	overloaded properly. In theory, here is not the right place to start the 
-	timer because if we pause, the timer will continue to grow and upon resume
-	filling will restart on the Source that has the connection, will then be 
-	stalled till we empty our queue, which might not happen before a while.
-	But that does not happen as the group is broken up at every pause, so 
-	we'll restart a fresh timer
-=cut	
-	Slim::Utils::Timers::setTimer($self, Time::HiRes::time() + CHUNK_MIN_TIMER, \&_chunksCleaner, CHUNK_MIN_TIMER) if !$Plugins::Groups::Plugin::autoChunk;
 }
 
 sub undoGroup {
@@ -268,9 +226,6 @@ sub undoGroup {
 		# rejoin previously established groups
 		_detach($member);
 	}
-	
-	# can stop chunks cleanup timers
-	Slim::Utils::Timers::killTimers($self, \&_chunksCleaner);	
 }
 
 sub _detach {

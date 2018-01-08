@@ -80,11 +80,11 @@ PLUGIN_GROUPS_OPTIONSVOLUME
 
 PLUGIN_GROUPS_RESTORESTATIC
 	DE	Gruppen beim Ausschalten wieder herstellen
-	EN	Restore permanent groups
-	FR	Rétablir les groupes permanents
+	EN	Restore sync groups 
+	FR	Rétablir les groupes de synchronisation
 
 PLUGIN_GROUPS_RESTORESTATIC_DESC
 	DE	Wenn eine Geräte Gruppe gestoppt wird, können die enthaltenen Player wieder der zuvor zugehörigen Synchronisations-Gruppe zugewiesen werden. Die Wiedergabe wird mit dem nächsten Titel wieder hergestellt.
-	EN	When a Group Player stops, members that belonged to a LMS permanent group can be re-associated to it. They will resume playing at next track
-	FR	Lorsqu'un Lecteur Groupé s'arrête, les membres appartenant à un groupe permanent peuvent lui être ré-affectés. Ils ne recommenceront à jouer qu'à la piste suivante
+	EN	When a Group Player stops, members that belonged to a LMS sync group can be re-associated to it. They will resume playing at next track
+	FR	Lorsqu'un Lecteur Groupé s'arrête, les membres appartenant à un groupe de synchronisation peuvent lui être ré-affectés. Ils ne recommenceront à jouer qu'à la piste suivante
 
