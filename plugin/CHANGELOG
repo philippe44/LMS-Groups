@@ -3,6 +3,7 @@
  - simplify chunks cleaning (credits @mherger)
  - remove timer for chunks cleaning -not needed thanks to the above)
  - translations (credits @mherger)
+ - groups icon (credit @pippin)
  
 0.2.2
  - move back Group Player preferences into plugin prefs
