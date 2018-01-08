@@ -1,5 +1,5 @@
 PLUGIN_GROUPS_NAME
-	DE	Gruppe-Player
+	DE	Geräte Gruppen
 	EN	Group Players
 	FR	Lecteurs Groupés
 	
@@ -19,13 +19,13 @@ PLUGIN_GROUPS_STARTING
 	FR	Démarrage des Lecteurs Groupés
 	
 PLUGIN_GROUPS_SHOWDISCONNECTED
-	DE	Include disconnected players
+	DE	Zeige nicht verbundene Geräte
 	EN	Include disconnected players
 	FR	Inclure les lecteurs déconnectés
 	
 PLUGIN_GROUPS_SHOWDISCONNECTED_DESC
-	DE	Show all players, including disconnected ones
-	EN	Show all players, including disconnected ones
+	DE	Zeige alle Geräte, auch jene, welche zur Zeit nicht mit dem Server verbunden sind.
+	EN	Show all players, including devices which currently aren't connected.
 	FR	Montre tous les lecteurs, incluant ceux qui sont déconnectés
 	
 PLUGIN_GROUPS_NEWGROUP
@@ -69,7 +69,7 @@ PLUGIN_GROUPS_OPTIONSPOWER
 	FR	Allume/Eteint tout avec le Lecture de Groupe
 	
 PLUGIN_GROUPS_OPTIONSPOWERPLAY
-	DE	Mitglieder Ein beim Start
+	DE	Alle Geräte beim Start einschalten
 	EN	Power all on play
 	FR	Allume tout à la lecture
 	
@@ -84,6 +84,7 @@ PLUGIN_GROUPS_RESTORESTATIC
 	FR	Rétablir les groupes permanents
 
 PLUGIN_GROUPS_RESTORESTATIC_DESC
+	DE	Wenn eine Geräte Gruppe gestoppt wird, können die enthaltenen Player wieder der zuvor zugehörigen Synchronisations-Gruppe zugewiesen werden. Die Wiedergabe wird mit dem nächsten Titel wieder hergestellt.
 	EN	When a Group Player stops, members that belonged to a LMS permanent group can be re-associated to it. They will resume playing at next track
 	FR	Lorsqu'un Lecteur Groupé s'arrête, les membres appartenant à un groupe permanent peuvent lui être ré-affectés. Ils ne recommenceront à jouer qu'à la piste suivante
 
