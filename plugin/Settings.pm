@@ -63,7 +63,6 @@ sub handler {
 	}
 
 	$params->{newGroupName} = undef;
-	$params->{players}      = makePlayerList($params->{pref_showDisconnected});
 	$params->{groups}      = [ Plugins::Groups::Plugin::allPrefs ];
 	
 	$log->debug("Groups::Settings->handler() done.");
@@ -89,8 +88,10 @@ sub createId {
 	return $id;
 }
 
-sub makePlayerList {
-	my $showDisconnected = shift;
+sub beforeRender {
+	my ($class, $params, $client) = @_;
+
+	my $showDisconnected = $prefs->get('showDisconnected');
 	my @playerList = ();
 	
 	if ($showDisconnected) {
@@ -113,7 +114,7 @@ sub makePlayerList {
 	
 	@playerList = sort { lc($a->{'name'}) cmp lc($b->{'name'}) } @playerList;
 	
-	return \@playerList;
+	$params->{players} = \@playerList;
 }
 
 
