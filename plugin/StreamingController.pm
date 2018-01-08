@@ -186,6 +186,10 @@ sub pause {
 
 sub _chunksCleaner {
 	my ($self, $timer) = @_;
+
+	# make sure we don't run multiple timers for this call
+	Slim::Utils::Timers::killTimers($self, \&_chunksCleaner);	
+
 	my $chunks = scalar @{$self->master->chunks};
 
 	@{$self->master->chunks} = ();

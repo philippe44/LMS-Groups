@@ -42,6 +42,9 @@ sub fade_volume { 1 }
 sub connected { $_[0]->tcpsock }
 # sub ipport { '127.0.0.1:0' }
 
+# override the accessor from Client.pm: always return an empty list
+sub chunks { [] }
+
 sub new {
 	my ($class, $id, $paddr, $rev, $s, $deviceid, $uuid) = @_;
 	my $client = $class->SUPER::new($id, $paddr, $rev, $s, $deviceid, $uuid);
