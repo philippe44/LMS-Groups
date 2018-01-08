@@ -1,3 +1,9 @@
+0.2.3
+ - correct disconnected players in settings (credits @mherger)
+ - simplify chunks cleaning (credits @mherger)
+ - remove timer for chunks cleaning -not needed thanks to the above)
+ - translations (credits @mherger)
+ 
 0.2.2
  - move back Group Player preferences into plugin prefs
  - restoreSync parameter was always set at init (issue with toolkit)
