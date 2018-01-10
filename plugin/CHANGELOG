@@ -1,3 +1,7 @@
+0.2.4
+ - remove autochunk var
+ - clean members queue when group is broken up
+
 0.2.3
  - correct disconnected players in settings (credits @mherger)
  - simplify chunks cleaning (credits @mherger)

@@ -222,6 +222,11 @@ sub undoGroup {
 	foreach my $member ($master->syncedWith) {
 		$log->info("undo group sync for ", $member->name, " from ", $master->name);
 		$self->SUPER::unsync($member);
+		
+		# members shall not remember group's queue (NB: this is a new controller)
+		$member->controller()->resetSongqueue();
+		$member->playlist( [] );
+		$member->currentPlaylist(undef);
 
 		# rejoin previously established groups
 		_detach($member);
