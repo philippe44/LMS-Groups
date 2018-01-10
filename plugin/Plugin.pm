@@ -20,8 +20,6 @@ use Plugins::Groups::Source;
 # override default Slim::Player::Playlist::stopAndClear()
 use Plugins::Groups::Playlist;
 
-our $autoChunk = 0;
-
 my $log = Slim::Utils::Log->addLogCategory({
 	'category' => 'plugin.groups',
 	'defaultLevel' => 'ERROR',
@@ -66,9 +64,8 @@ sub initPlugin {
 	
 	$prefs->set('restoreStatic', 1) unless $prefs->exits('restoreStatic');
 
-	$autoChunk = defined &Slim::Player::Source::_groupOverload;
-	$log->warn('cannot overload Slim::Player::Source ==> member stop will stop all group and chunks will be purged by timer') if !$autoChunk;
-	$log->warn('cannot overload Slim::Player::Playlist ==> member stop will stop all group') if !defined &Slim::Player::Playlist::_groupOverload;
+	$log->warn('cannot overload Slim::Player::Source ==> member stop will stop all group') unless defined &Slim::Player::Source::_groupOverload;
+	$log->warn('cannot overload Slim::Player::Playlist ==> member stop will stop all group') unless defined &Slim::Player::Playlist::_groupOverload;
 
 	if ( main::WEBUI ) {
 		require Plugins::Groups::Settings;

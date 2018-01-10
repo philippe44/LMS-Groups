@@ -12,7 +12,6 @@ package Slim::Player::Source;
 use Slim::Utils::Log;
 
 my $log = logger('player.source');
-my $prefs = preferences('server');
 
 sub _groupOverload { 1 }
 

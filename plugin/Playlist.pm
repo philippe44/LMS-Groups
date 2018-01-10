@@ -6,10 +6,6 @@ package Slim::Player::Playlist;
 	$client object when stopping playback.
 =cut
 
-use Slim::Utils::Log;
-
-my $log = logger('player.playlist');
-
 sub _groupOverload { 1 }
 
 sub stopAndClear {
