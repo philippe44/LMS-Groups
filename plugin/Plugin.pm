@@ -60,12 +60,9 @@ sub getDisplayName() {
 sub initPlugin {
 	my $class = shift;
 	
-	$log->info(string('PLUGIN_GROUPS_STARTING'));
+	main::INFOLOG && $log->is_info && $log->info(string('PLUGIN_GROUPS_STARTING'));
 	
 	$prefs->set('restoreStatic', 1) unless $prefs->exits('restoreStatic');
-
-	$log->warn('cannot overload Slim::Player::Source ==> member stop will stop all group') unless defined &Slim::Player::Source::_groupOverload;
-	$log->warn('cannot overload Slim::Player::Playlist ==> member stop will stop all group') unless defined &Slim::Player::Playlist::_groupOverload;
 
 	if ( main::WEBUI ) {
 		require Plugins::Groups::Settings;
@@ -75,7 +72,7 @@ sub initPlugin {
 	$class->initCLI();
 		
 	foreach my $id ( $class->groupIDs() ) {
-		main::INFOLOG && $log->info("Creating player group $id");
+		main::INFOLOG && $log->is_info && $log->info("Creating player group $id");
 		createPlayer($id);
 	}
 	
@@ -104,7 +101,7 @@ sub mixerVolumeCommand {
 	# get the memorized individual volumes
 	my $volumes = $prefs->client($master)->get('volumes');
 		
-	$log->info("volume command $newVolume for $client with old volume $oldVolume (master = $master)");
+	main::INFOLOG && $log->is_info && $log->info("volume command $newVolume for $client with old volume $oldVolume (master = $master)");
 	
 	if ($client == $master) {
 		# when changing virtual player's volume, apply a ratio to all members, 
@@ -114,7 +111,7 @@ sub mixerVolumeCommand {
 	
 			$volumes->{$id} = $volume;
 						
-			$log->debug("new volume for $id $volume");
+			main::DEBUGLOG && $log->is_debug && $log->debug("new volume for $id $volume");
 			
 			# only apply if member is connected & synchronized 
 			my $member = Slim::Player::Client::getClient($id);
@@ -129,12 +126,12 @@ sub mixerVolumeCommand {
 		foreach my $id (@$members) { 
 			# do not use actual $member->volume as we might not be actually synced with it
 			$masterVolume += $volumes->{$id};
-			$log->debug("current volume of $id ", $volumes->{$id});
+			main::DEBUGLOG && $log->is_debug && $log->debug("current volume of $id ", $volumes->{$id});
 		}
 		
 		$masterVolume /= scalar @$members;
 		
-		$log->info("setting master volume from $client for $master at $masterVolume");
+		main::INFOLOG && $log->is_info && $log->info("setting master volume from $client for $master at $masterVolume");
 	
 		Slim::Control::Request::executeRequest($master, ['mixer', 'volume', $masterVolume]);
 	}
@@ -168,7 +165,7 @@ sub initVolume {
 	
 	# set master's volume
 	$masterVolume /= scalar @$members;
-	$log->info("new master volume $masterVolume");
+	main::INFOLOG && $log->is_info && $log->info("new master volume $masterVolume");
 	
 	# this is init, so avoid loop in mixercommand (and can't rely on _volumeDispatching)
 	$master->volume($masterVolume);
@@ -198,7 +195,7 @@ sub createPlayer {
 	$client->tcpsock(1);
 	$client->init;
 		
-	$log->info("create group player $client");
+	main::INFOLOG && $log->is_info && $log->info("create group player $client");
 }
 
 sub delPlayer {	
@@ -216,7 +213,7 @@ sub delPlayer {
 				Slim::Control::Request::executeRequest($client, ['client', 'forget']);
 				} );
 				
-	main::INFOLOG && $log->info("delete group player $client");
+	main::INFOLOG && $log->is_info && $log->info("delete group player $client");
 }
 
 sub initCLI {

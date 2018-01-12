@@ -73,7 +73,7 @@ sub playerTrackStarted {
 	my ($self, $client) = @_;
 	my $surrogate = _Surrogate($self);
 				
-	$log->info("track started $client");
+	main::INFOLOG && $log->is_info && $log->info("track started $client");
 	
 	# send started on behalf of master
 	$self->SUPER::playerTrackStarted($client->master) if $client == $surrogate;
@@ -85,7 +85,7 @@ sub playerStatusHeartbeat {
 	my ($self, $client) = @_;
 	my $surrogate = _Surrogate($self);
 		
-	$log->debug("status heartbeat $client");
+	main::DEBUGLOG && $log->is_debug && $log->debug("status heartbeat $client");
 	
 	# send heartbeat on behalf of master
 	$self->SUPER::playerStatusHeartbeat($client->master) if $client == $surrogate;
@@ -97,7 +97,7 @@ sub playerStopped {
 	my ($self, $client) = @_;
 	my $surrogate = _Surrogate($self);
 		
-	$log->info("track ended $client");
+	main::INFOLOG && $log->is_info && $log->info("track ended $client");
 	
 	# send stop on behalf of master
 	if ($client == $surrogate) {
@@ -111,7 +111,7 @@ sub playerStopped {
 sub play {
 	my $self = shift;
 	
-	$log->info("play request $self");
+	main::INFOLOG && $log->is_info && $log->info("play request $self");
 
 	# be careful if we have been synced manually with a normal player
 	$self->doGroup if $self->master->isa("Plugins::Groups::Player");
@@ -123,7 +123,7 @@ sub stop {
 	my $self = shift;
 	my $client = shift;
 	
-	$log->info("stop request $self $client");
+	main::INFOLOG && $log->is_info && $log->info("stop request $self $client");
 	
 	return $self->SUPER::stop(@_) unless $self->master->isa("Plugins::Groups::Player");
 	
@@ -131,7 +131,7 @@ sub stop {
 	# just unsync the member to let the group continue, unless the member is
 	# the only player in that group
 	if (defined $client && $client != $self->master && $self->activePlayers() > 2) {
-		$log->info("A member $client stopped on its own from ", $self->master);
+		main::INFOLOG && $log->is_info && $log->info("A member $client stopped on its own from ", $self->master);
 		
 		# unsync (do not keep syncid) and rejoin previously established groups
 		$self->SUPER::unsync($client);
@@ -149,7 +149,7 @@ sub stop {
 sub resume {
 	my $self = shift;
 	
-	$log->info("resume request $self");
+	main::INFOLOG && $log->is_info && $log->info("resume request $self");
 	
 	$self->doGroup(1) if $self->master->isa("Plugins::Groups::Player");
 	return $self->SUPER::resume(@_);
@@ -159,14 +159,14 @@ sub pause {
 	my $self = shift;
 	my $client = shift;
 	
-	$log->info("pause request $self from $client with master ", $self->master);
+	main::INFOLOG && $log->is_info && $log->info("pause request $self from $client with master ", $self->master);
 
 	# do not break up group solely when it's a "standalone" pause
 	if ((!defined $client || $client == $self->master) && $self->master->isa("Plugins::Groups::Player")) {	
-		$log->info("master pause ", $self->master, " or no client $client");
+		main::INFOLOG && $log->is_info && $log->info("master pause ", $self->master, " or no client $client");
 		$self->undoGroup(USER_PAUSE);		
 	} else {
-		$log->info("member $client paused on its own for ", $self->master);
+		main::INFOLOG && $log->is_info && $log->info("member $client paused on its own for ", $self->master);
 	}	
 	
 	return $self->SUPER::pause(@_);
@@ -203,7 +203,7 @@ sub doGroup {
 						defined $member->pluginData('syncgroupid') && 
 						$member->pluginData('syncgroupid') != -1;
 		
-		$log->info("sync ", $member->name, " to ", $master->name, " former syncgroup ", $syncGroupId);
+		main::INFOLOG && $log->is_info && $log->info("sync ", $member->name, " to ", $master->name, " former syncgroup ", $syncGroupId);
 				
 		$self->SUPER::sync($member, $resume);
 		
@@ -220,7 +220,7 @@ sub undoGroup {
 		
 	# disassemble the group
 	foreach my $member ($master->syncedWith) {
-		$log->info("undo group sync for ", $member->name, " from ", $master->name);
+		main::INFOLOG && $log->is_info && $log->info("undo group sync for ", $member->name, " from ", $master->name);
 		$self->SUPER::unsync($member);
 		
 		# members shall not remember group's queue (NB: this is a new controller)
@@ -260,7 +260,7 @@ sub _detach {
 
 		if ($otherMasterId && ($otherMasterId eq $syncGroupId)) {
 			$other->controller->sync($client, 1);
-			$log->info("restore static ", $client->name, " with ", $other->name, " group $syncGroupId");
+			main::INFOLOG && $log->is_info && $log->info("restore static ", $client->name, " with ", $other->name, " group $syncGroupId");
 			# power-off if other is playing	to avoid member to play when virtual 
 			# stops and memorize that forced power off
 			if (!$other->isStopped) {

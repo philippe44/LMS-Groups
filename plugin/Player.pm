@@ -177,7 +177,7 @@ sub power {
 	# seems that members must be powered on/off before the following is executed
 	if ($prefs->client($client)->get('powerMaster')) {
 	
-		$log->info("powering $on all members for ", $client->name);
+		main::INFOLOG && $log->is_info && $log->info("powering $on all members for ", $client->name);
 	
 		# power on/off all connected members
 		foreach ( @{$prefs->client($client)->get('members') || [] } )	{

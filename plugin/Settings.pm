@@ -57,7 +57,7 @@ sub handler {
 		if ((defined $params->{'newGroupName'}) && ($params->{'newGroupName'} ne '')) {
 			my $id = createId();
 			
-			$log->info("Adding $params->{'newGroupName'} $id");
+			main::INFOLOG && $log->is_info && $log->info("Adding $params->{'newGroupName'} $id");
 			Plugins::Groups::Plugin::createPlayer($id, $params->{'newGroupName'});
 		}
 	}
