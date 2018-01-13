@@ -202,7 +202,16 @@ sub doGroup {
 		$member->pluginData(syncgroupid => $syncGroupId) unless 
 						defined $member->pluginData('syncgroupid') && 
 						$member->pluginData('syncgroupid') != -1;
-		
+						
+		# memorize playlist information	(take a copy of lists)			
+		$member->pluginData(playlist => {
+						playlist 	=> [ @{$member->playlist} ],
+						shufflelist => [ @{$member->shufflelist} ],
+						index   	=> Slim::Player::Source::streamingSongIndex($member),
+						shuffle  	=> $sprefs->client($member)->get('shuffle'),
+						repeat		=> $sprefs->client($member)->get('repeat'),
+					} );	
+			
 		main::INFOLOG && $log->is_info && $log->info("sync ", $member->name, " to ", $master->name, " former syncgroup ", $syncGroupId);
 				
 		$self->SUPER::sync($member, $resume);
@@ -223,13 +232,28 @@ sub undoGroup {
 		main::INFOLOG && $log->is_info && $log->info("undo group sync for ", $member->name, " from ", $master->name);
 		$self->SUPER::unsync($member);
 		
-		# members shall not remember group's queue (NB: this is a new controller)
-		$member->controller()->resetSongqueue();
-		$member->playlist( [] );
-		$member->currentPlaylist(undef);
-
 		# rejoin previously established groups
 		_detach($member);
+		
+		# if member has not returned to a sync group, restore previous
+		# playlist if any or erase Group Player's playlist
+		if ($member->controller()->allPlayers < 2) {
+			my $playlist = $member->pluginData('playlist');
+			
+			main::INFOLOG && $log->is_info && $log->info("restoring playlist");
+				
+			@{$member->playlist} = @{$playlist->{playlist}};
+			@{$member->shufflelist} = @{$playlist->{shufflelist}};
+		
+			$sprefs->client($member)->set('shuffle', $playlist->{shuffle});
+			$sprefs->client($member)->set('repear', $playlist->{repeat});
+		
+			$member->controller()->resetSongqueue($playlist->{index});
+			$member->currentPlaylistUpdateTime(Time::HiRes::time());
+
+			Slim::Control::Request::notifyFromArray($member, ['playlist', 'stop']);	
+			Slim::Control::Request::notifyFromArray($member, ['playlist', 'sync']);
+		}
 	}
 }
 
@@ -247,10 +271,10 @@ sub _detach {
 	# erase forced power off sequence
 	$client->pluginData(forcedPowerOff => 0);
 				
-	# nothing to restore, just done
+	# done if no sync group or not configure to restore them
 	return unless $prefs->get('restoreStatic') && $syncGroupId != -1;
-		
-	# restore static group if any
+	
+	# restore sync group
 	$sprefs->client($client)->set('syncgroupid', $syncGroupId);
 			
 	# parse all players for a matching group but do not restart if it plays
