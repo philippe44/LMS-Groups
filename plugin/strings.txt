@@ -60,18 +60,18 @@ PLUGIN_GROUPS_OPTIONS
 	
 PLUGIN_GROUPS_OPTIONS_DESC
 	DE	Steuert, wie Änderungen an der Gruppe die Player beeinflusst: <br> - Player miteinander ein/ausschalten 
-	EN	Sets how changes on Group Player affects members <br> - power on/off members alltogether <br> - power members when playing
+	EN	Sets how changes on Group Player affects members <br> - Power on/off members alltogether <br> - Power members when playing
 	FR	Définit la façon dont un changement sur un Lecteur Groupé affecte les membres <br> - Allume/Eteint tous les membres <br> Allume les membres à la lecture
 
 PLUGIN_GROUPS_OPTIONSPOWER
 	DE	Ein/Ausschalten
 	EN	Power on/off all with Group Player
-	FR	Allume/Eteint tout avec le Lecture de Groupe
+	FR	Allume/Eteint tout avec le Lecteur Groupé
 	
 PLUGIN_GROUPS_OPTIONSPOWERPLAY
 	DE	Alle Geräte beim Start einschalten
 	EN	Power all on play
-	FR	Allume tout à la lecture
+	FR	Allume tous à la lecture
 	
 PLUGIN_GROUPS_OPTIONSVOLUME
 	DE	Lautstärke

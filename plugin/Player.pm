@@ -130,7 +130,7 @@ sub rebuffer {
 	$client->bufferReady(1);
 	
 	# I don't think this is strictly necessary as other players will move the 
-	# controler to buffer ready state
+	# controller to buffer ready state
 	Slim::Utils::Timers::setTimer( $client,	Time::HiRes::time() + 0.125, sub {
 						$client->controller->playerBufferReady($client);
 						}
@@ -235,34 +235,6 @@ sub power {
 		}		
 	}
 }
-
-=comment
-sub getPrefs {
-	my ($self, $key) = @_;
-	my $id = $self->id;
-	
-	# get prefs for a specific id (optionally for a specific key)
-	if ( defined $id ) {
-		my $cprefs = $sprefs->{clients}->{$id} || first { $_->{clientid} eq $id } $sprefs->allClients;
-		
-		return $cprefs->get($prefs->namespace)->{$key} if defined $key;
-		return $cprefs->get($prefs->namespace);
-	} 
-}
-
-sub setPrefs {
-	my ($self, $key, $value) = @_;
-	my $id = $self->id;
-	my $cprefs = $sprefs->{clients}->{$id} || first { $_->{clientid} eq $id } $sprefs->allClients;
-	my $nsprefs = $cprefs->get($prefs->namespace);
-	
-	# bulk setting
-	if (ref $key eq 'HASH') { %$nsprefs = (%$nsprefs, %$key) }
-	else { $nsprefs->{$key} = $value }	
-		
-	$cprefs->set($prefs->namespace, $nsprefs);
-}
-=cut
 
 sub _Surrogate {
 	my $client = shift;

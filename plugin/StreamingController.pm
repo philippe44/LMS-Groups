@@ -67,7 +67,7 @@ sub new {
 	return $class->SUPER::new($client);
 }
 
-# playerBufferReady does not need to be surrogated as it is not filtered only for mast
+# playerBufferReady does not need to be surrogated as it is not filtered only for master
 
 sub playerTrackStarted {
 	my ($self, $client) = @_;

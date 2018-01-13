@@ -1,3 +1,8 @@
+0.2.5
+ - first non-alpha release
+ - clean a few typos in translations
+ - remove ununsed code
+ 
 0.2.4
  - remove autochunk var
  - clean members queue when group is broken up
