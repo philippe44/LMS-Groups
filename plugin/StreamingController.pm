@@ -179,9 +179,11 @@ sub doGroup {
 	return if scalar @{ $self->{'allPlayers'} } > 1;
 	
 	my $master = $self->master;
-	my $masterVolume = 0;
 	my $members = $prefs->client($master)->get('members') || return;
 	my $volumes = $prefs->client($master)->get('volumes');
+	
+	# prevent volume calculation when setting back group values for members
+	$master->_volumeDispatching(1);			
 	
 	foreach (@$members) {
 		my $member = Slim::Player::Client::getClient($_);
@@ -221,6 +223,9 @@ sub doGroup {
 		$member->pluginData(volume => $member->volume) if !defined($volume) || $volume == -1;
 		Slim::Control::Request::executeRequest($member, ['mixer', 'volume', $volumes->{$member->id}]);
 	}
+	
+	# volumes done
+	$master->_volumeDispatching(0);			
 }
 
 sub undoGroup {
@@ -235,8 +240,8 @@ sub undoGroup {
 		# rejoin previously established groups
 		_detach($member);
 		
-		# if member has not returned to a sync group, restore previous
-		# playlist if any or erase Group Player's playlist
+		# if member has not returned to a sync group, restore previous playlist 
+		# if any or erase Group Player's playlist
 		if ($member->controller()->allPlayers < 2) {
 			my $playlist = $member->pluginData('playlist');
 			
@@ -264,7 +269,8 @@ sub _detach {
 	my $syncGroupId = $client->pluginData('syncgroupid');
 	$client->pluginData(syncgroupid => -1);
 	
-	# reset volume to previous value and free up room 
+	# reset volume to previous value and free up room, no risk of volume loop
+	# as controller is a not a special one any more (we are unsync)
 	Slim::Control::Request::executeRequest($client, ['mixer', 'volume', $client->pluginData('volume')]);
 	$client->pluginData(volume => -1);
 	
