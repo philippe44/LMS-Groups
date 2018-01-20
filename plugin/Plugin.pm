@@ -67,7 +67,18 @@ sub initPlugin {
 	if ( main::WEBUI ) {
 		require Plugins::Groups::Settings;
 		Plugins::Groups::Settings->new;
-	}	
+		
+		# try to add the Group Player section in the player selection drop-down menu - requires a recent 7.9.1 or later
+		eval {
+			require Slim::Web::Pages::JS;
+
+			Slim::Web::Pages->addPageFunction("plugins/groups/js-main-grouping.js", sub {
+				Slim::Web::HTTP::filltemplatefile('js-main-grouping.js', $_[1]);
+			});
+			
+			Slim::Web::Pages::JS->addJSFunction('js-main', 'plugins/groups/js-main-grouping.js');		
+		}
+	}
 
 	$class->initCLI();
 		
