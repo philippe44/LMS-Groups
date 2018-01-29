@@ -1,3 +1,8 @@
+0.3.3
+ - ignore players who's volume if fixed at 100% 
+ - break-up group after 30 min of idle when pause originated by a member
+ - put codecs in "magic" order
+
 0.3.2
  - with LMS version 7.9.1 of 01/22/2018, groups appear separately in webUI (credits @mherger)
 

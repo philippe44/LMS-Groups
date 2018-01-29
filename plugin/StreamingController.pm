@@ -167,14 +167,19 @@ sub pause {
 		$self->undoGroup(USER_PAUSE);		
 	} else {
 		main::INFOLOG && $log->is_info && $log->info("member $client paused on its own for ", $self->master);
+		# group will remain assembled for 30 mins
+		Slim::Utils::Timers::setTimer($self, time() + 30*60, \&undoGroup);
 	}	
 	
 	return $self->SUPER::pause(@_);
 }
-
+						
 sub doGroup {
 	my ($self, $resume) = @_;
 		
+	# stop disassemble timers started on individual player's pause
+	Slim::Utils::Timers::killTimers($self, \&undoGroup);		
+	
 	# we might already be assembled if a pause came from a single player
 	return if scalar @{ $self->{'allPlayers'} } > 1;
 	
@@ -221,7 +226,8 @@ sub doGroup {
 		# memorize and set volume of members, but only memorize the original one
 		my $volume = $member->pluginData('volume');
 		$member->pluginData(volume => $member->volume) if !defined($volume) || $volume == -1;
-		Slim::Control::Request::executeRequest($member, ['mixer', 'volume', $volumes->{$member->id}]);
+		# request should be ignored if fixed volume but do not try to set a wrong volume (-1)
+		Slim::Control::Request::executeRequest($member, ['mixer', 'volume', $volumes->{$member->id}]) if $volumes->{$member->id} != -1;
 	}
 	
 	# volumes done
@@ -231,7 +237,10 @@ sub doGroup {
 sub undoGroup {
 	my ($self, $kind) = @_;
 	my $master = $self->master;
-		
+	
+	# stop disassemble timers started on individual player's pause
+	Slim::Utils::Timers::killTimers($self, \&undoGroup);		
+	
 	# disassemble the group
 	foreach my $member ($master->syncedWith) {
 		main::INFOLOG && $log->is_info && $log->info("undo group sync for ", $member->name, " from ", $master->name);
@@ -271,6 +280,7 @@ sub _detach {
 	
 	# reset volume to previous value and free up room, no risk of volume loop
 	# as controller is a not a special one any more (we are unsync)
+	# the request should be ignored if the device has fixed volume
 	Slim::Control::Request::executeRequest($client, ['mixer', 'volume', $client->pluginData('volume')]);
 	$client->pluginData(volume => -1);
 	

@@ -118,6 +118,8 @@ sub mixerVolumeCommand {
 		# when changing virtual player's volume, apply a ratio to all members, 
 		# whether they are currently sync'd or not (except the missing ones)
 		foreach my $id (@$members) {
+			# bypass fixed volumes (can't use getClient as it only works for connected devices)
+			next if $volumes->{$id} == -1;
 			my $volume = $oldVolume ? $volumes->{$id} * $newVolume / $oldVolume : $newVolume;
 	
 			$volumes->{$id} = $volume;
@@ -129,22 +131,27 @@ sub mixerVolumeCommand {
 			Slim::Control::Request::executeRequest($member, ['mixer', 'volume', $volume]) if $member && $master->isSyncedWith($member);
 		}	
 	} else {
-		# memorize volume in master's prefs
-		$volumes->{$client->id} = $newVolume;
+		# memorize volume in master's prefs 
+		$volumes->{$client->id} = $sprefs->client($client)->get("digitalVolumeControl") ? $newVolume : -1;
 		my $masterVolume = 0;
+		my $count = 0;
 		
 		# the virtual is an average of all members' volumes
 		foreach my $id (@$members) { 
+			# do not take into account fixed volume members 
+			next if $volumes->{$id} == -1; 
+			
 			# do not use actual $member->volume as we might not be actually synced with it
 			$masterVolume += $volumes->{$id};
+			$count++;
 			main::DEBUGLOG && $log->is_debug && $log->debug("current volume of $id ", $volumes->{$id});
 		}
 		
-		$masterVolume /= scalar @$members;
-		
+		$masterVolume = $count ? $masterVolume / $count : -1;
+				
 		main::INFOLOG && $log->is_info && $log->info("setting master volume from $client for $master at $masterVolume");
 	
-		Slim::Control::Request::executeRequest($master, ['mixer', 'volume', $masterVolume]);
+		Slim::Control::Request::executeRequest($master, ['mixer', 'volume', $masterVolume]) if $masterVolume != -1;
 	}
 
 	# memorize volumes for when group will be re-assembled
@@ -161,21 +168,29 @@ sub initVolume {
 	my $masterVolume = 0;
 	my $members = $prefs->client($master)->get('members');
 	my $volumes = $prefs->client($master)->get('volumes');
-	
+		
 	return unless scalar @$members;
+	
+	my $count = 0;
 	
 	foreach my $id (@$members) {
 		my $member = Slim::Player::Client::getClient($id);
-
-		# initialize member's volume if possible & needed	
-		$volumes->{$id} = $member->volume if defined $member && !defined $volumes->{$id};
-		$masterVolume += $volumes->{$id};
+		
+		# do no take into account 100% fixed volume
+		if ($sprefs->client($member)->get('digitalVolumeControl')) {
+			# initialize member's volume if possible & needed	
+			$count++;
+			$volumes->{$id} = $member->volume if defined $member && !defined $volumes->{$id};
+			$masterVolume += $volumes->{$id};
+		} else { 
+			$volumes->{$id} = -1; 
+		}	
 	}
 	
 	$prefs->client($master)->set('volumes', $volumes);	
 	
-	# set master's volume
-	$masterVolume /= scalar @$members;
+	# set master's volume, if none abitrary set at 100%
+	$masterVolume = $count ? $masterVolume / $count : 100;
 	main::INFOLOG && $log->is_info && $log->info("new master volume $masterVolume");
 	
 	# this is init, so avoid loop in mixercommand (and can't rely on _volumeDispatching)

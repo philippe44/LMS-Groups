@@ -22,7 +22,7 @@ my $log = logger('plugin.groups');
 
 sub model { "group" }
 sub modelName { "Group" }
-sub formats { qw(wma ogg flc aif pcm mp3) }
+sub formats { qw(aac wma ogg flc aif pcm mp3) } 
 sub maxSupportedSamplerate { 192000 }
 sub maxTreble { 50 }
 sub minTreble { 50 }
