@@ -4,6 +4,8 @@ use strict;
 
 use base qw(Slim::Player::Player);
 
+use List::Util qw(first);
+
 use Slim::Utils::Log;
 use Slim::Utils::Misc;
 use Slim::Utils::Network;
@@ -22,7 +24,6 @@ my $log = logger('plugin.groups');
 
 sub model { "group" }
 sub modelName { "Group" }
-sub formats { qw(aac wma ogg flc aif pcm mp3) } 
 sub maxSupportedSamplerate { 192000 }
 sub maxTreble { 50 }
 sub minTreble { 50 }
@@ -44,6 +45,25 @@ sub connected { $_[0]->tcpsock }
 
 # override the accessor from Client.pm: always return an empty list
 sub chunks { [] }
+
+use Data::Dumper;
+
+sub formats { 
+	my $self = shift;
+	my $codecs;
+	my @members = @{$prefs->client($self)->get('members') || []};
+		
+	foreach (@members)	{
+		my $member = Slim::Player::Client::getClient($_);
+		next unless $member;
+		
+		$codecs = [ $member->formats ] unless defined $codecs;
+		@$codecs = map { my $v = $_; (first {$_ eq $v} $member->formats) || () } @$codecs;
+	}
+		
+	# no attempt to create group done w/o codec
+	return $codecs ? @$codecs : ();
+} 
 
 sub new {
 	my ($class, $id, $paddr, $rev, $s, $deviceid, $uuid) = @_;

@@ -1,3 +1,9 @@
+0.4.1
+ - build codec list based on connected players
+ 
+0.4.0
+ - Group Player volume should ignore players with fixed volume 
+ 
 0.3.2
  - with LMS version 7.9.1 of 01/22/2018, groups appear separately in webUI (credits @mherger)
 
