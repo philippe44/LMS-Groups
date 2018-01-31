@@ -3,6 +3,7 @@
  
 0.4.0
  - Group Player volume should ignore players with fixed volume 
+ - When pause requested by a member, disassemble group after 30 min
  
 0.3.2
  - with LMS version 7.9.1 of 01/22/2018, groups appear separately in webUI (credits @mherger)
