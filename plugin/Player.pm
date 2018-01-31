@@ -4,8 +4,6 @@ use strict;
 
 use base qw(Slim::Player::Player);
 
-use List::Util qw(first);
-
 use Slim::Utils::Log;
 use Slim::Utils::Misc;
 use Slim::Utils::Network;
@@ -46,23 +44,24 @@ sub connected { $_[0]->tcpsock }
 # override the accessor from Client.pm: always return an empty list
 sub chunks { [] }
 
-use Data::Dumper;
-
 sub formats { 
 	my $self = shift;
-	my $codecs;
-	my @members = @{$prefs->client($self)->get('members') || []};
+	my @codecs;
 		
-	foreach (@members)	{
-		my $member = Slim::Player::Client::getClient($_);
-		next unless $member;
+	foreach ( @{$prefs->client($self)->get('members') || []} )	{
+		my $member = Slim::Player::Client::getClient($_) || next;
+
+		if (!scalar @codecs) {
+			@codecs = $member->formats;
+			next;
+		}		
 		
-		$codecs = [ $member->formats ] unless defined $codecs;
-		@$codecs = map { my $v = $_; (first {$_ eq $v} $member->formats) || () } @$codecs;
+		my %formats = map { $_ => 1 } $member->formats;
+		@codecs = grep { $formats{$_} } @codecs;
 	}
 		
 	# no attempt to create group done w/o codec
-	return $codecs ? @$codecs : ();
+	return @codecs;
 } 
 
 sub new {
