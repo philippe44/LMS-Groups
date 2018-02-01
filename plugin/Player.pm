@@ -61,7 +61,7 @@ sub formats {
 	}
 		
 	# no attempt to create group done w/o codec
-	return @$codecs;
+	return @{ $codecs || [] };
 } 
 
 sub new {
