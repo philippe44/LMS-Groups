@@ -46,22 +46,22 @@ sub chunks { [] }
 
 sub formats { 
 	my $self = shift;
-	my @codecs;
+	my $codecs;		# use listref to distinguish undefined from empty
 		
 	foreach ( @{$prefs->client($self)->get('members') || []} )	{
 		my $member = Slim::Player::Client::getClient($_) || next;
 
-		if (!scalar @codecs) {
-			@codecs = $member->formats;
+		if (!defined $codecs) {
+			$codecs = [ $member->formats ];
 			next;
 		}		
 		
 		my %formats = map { $_ => 1 } $member->formats;
-		@codecs = grep { $formats{$_} } @codecs;
+		$codecs = [ grep { $formats{$_} } @$codecs ];
 	}
 		
 	# no attempt to create group done w/o codec
-	return @codecs;
+	return @$codecs;
 } 
 
 sub new {
