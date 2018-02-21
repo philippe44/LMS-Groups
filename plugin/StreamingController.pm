@@ -135,7 +135,7 @@ sub stop {
 		
 		# unsync (do not keep syncid) and rejoin previously established groups
 		$self->SUPER::unsync($client);
-		_detach($client);
+		_detach($client, 1);
 		
 		return undef;
 	} 
@@ -192,7 +192,10 @@ sub doGroup {
 	
 	foreach (@$members) {
 		my $member = Slim::Player::Client::getClient($_);
-		next unless $member;
+		next unless $member && (!$member->pluginData('marker') || !$member->controller->isPlaying);
+				
+		# un-mark client now that it has re-join the group		
+		$member->pluginData(marker => 0);		
 		
 		# power on all members if needed, only on first play, not on resume
 		# unless it was forced off
@@ -272,11 +275,14 @@ sub undoGroup {
 }
 
 sub _detach {
-	my ($client) = @_;
+	my ($client, $marker) = @_;
 	
 	# 'make room' in memorized static group for next playback
 	my $syncGroupId = $client->pluginData('syncgroupid');
 	$client->pluginData(syncgroupid => -1);
+	
+	# marker the player
+	$client->pluginData(marker => $marker || 0);
 	
 	# reset volume to previous value and free up room, no risk of volume loop
 	# as controller is a not a special one any more (we are unsync)

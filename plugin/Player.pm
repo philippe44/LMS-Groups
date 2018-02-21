@@ -194,18 +194,17 @@ sub power {
 	}	
 	
 	# seems that members must be powered on/off before the following is executed
-	if ($prefs->client($client)->get('powerMaster')) {
+	my $power = $prefs->client($client)->get('powerMaster');
+	main::INFOLOG && $log->is_info && $log->info("powering $on all members for ", $client->name) if $power;
 	
-		main::INFOLOG && $log->is_info && $log->info("powering $on all members for ", $client->name);
-	
-		# power on/off all connected members
-		foreach ( @{$prefs->client($client)->get('members') || [] } )	{
-			my $member = Slim::Player::Client::getClient($_);
-			next unless $member;
-			# $member->power($on, $noplay)
-			Slim::Control::Request::executeRequest($member, ['power', $on, $noplay]);
-		}
-	}	
+	# power on/off all connected members
+	foreach ( @{$prefs->client($client)->get('members') || [] } )	{
+		my $member = Slim::Player::Client::getClient($_);
+		next unless $member;
+		# $member->power($on, $noplay)
+		Slim::Control::Request::executeRequest($member, ['power', $on, $noplay]) if $power;
+		$member->pluginData(marker => 0);
+	}
 
 =comment
 	code borrowed from Slim::Player::Player but that forces a controller stop 

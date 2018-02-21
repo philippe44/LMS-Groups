@@ -1,3 +1,6 @@
+0.5.0
+ - When a member stops on its own, mark it so that it will not re-join the group at next group resume/start if it is playing
+ 
 0.4.1
  - build codec list based on connected players
  
