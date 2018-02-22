@@ -29,12 +29,12 @@ PLUGIN_GROUPS_SHOWDISCONNECTED_DESC
 	FR	Montre tous les lecteurs, incluant ceux qui sont déconnectés
 	
 PLUGIN_GROUPS_BREAKUPTIMEOUT
-	DE	Gruppe Abbruchzeitlimit
+	DE	Pausierte Gruppe auflösen
 	EN	Group breakup timeout
 	FR	Timer de séparation
 	
 PLUGIN_GROUPS_BREAKUPTIMEOUT_DESC
-	DE	When pause is pressed on a member and to allow resume, the group will stay assembled for this amount of minutes (0 = no limit)
+	DE	Wenn auf einem Gruppen-Mitglied Pause gedrückt wird, verbleibe für diese Anzahl Minuten gruppiert, um die Wiedergabe fortsetzen zu können (0 = unbeschränkt).
 	EN	When pause is pressed on a member and to allow resume, the group will stay assembled for this amount of minutes (0 = no limit)
 	FR	Lors la pause est faite sur un player individuel et afin de permettre la reprise, le groupe restera assemblé pour ce nombre minutes (0 = pas de limite)
 	
