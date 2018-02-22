@@ -25,7 +25,7 @@ sub page {
 }
 
 sub prefs {
-	return ($prefs, qw(restoreStatic showDisconnected));
+	return ($prefs, qw(restoreStatic showDisconnected breakupTimeout));
 }
 
 sub handler {

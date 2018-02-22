@@ -168,7 +168,7 @@ sub pause {
 	} else {
 		main::INFOLOG && $log->is_info && $log->info("member $client paused on its own for ", $self->master);
 		# group will remain assembled for 30 mins
-		Slim::Utils::Timers::setTimer($self, time() + 30*60, \&undoGroup);
+		Slim::Utils::Timers::setTimer($self, time() + $prefs->get('breakupTimeout')*60, \&undoGroup) if $prefs->get('breakupTimeout');
 	}	
 	
 	return $self->SUPER::pause(@_);

@@ -13,8 +13,6 @@ use Slim::Utils::Log;
 
 my $log = logger('player.source');
 
-sub _groupOverload { 1 }
-
 # playmode - start playing, pause or stop
 sub playmode {
 	my ($client, $newmode, $seekdata, $reconnect, $fadeIn) = @_;

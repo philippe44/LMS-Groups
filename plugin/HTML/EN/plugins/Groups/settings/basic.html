@@ -3,6 +3,10 @@
 		<input type="checkbox" name="pref_restoreStatic" id="pref_restoreStatic" [% IF prefs.pref_restoreStatic %] checked [% END %] value="1" />
 	[% END %]	
 	
+	[% WRAPPER setting title="PLUGIN_GROUPS_BREAKUPTIMEOUT" desc="PLUGIN_GROUPS_BREAKUPTIMEOUT_DESC" %]
+		<input type="text" name="pref_breakupTimeout" id="pref_breakupTimeout" value="[% prefs.pref_breakupTimeout %]" size="3" />
+	[% END %]	
+	
 	[% WRAPPER setting title="PLUGIN_GROUPS_SHOWDISCONNECTED" desc="PLUGIN_GROUPS_SHOWDISCONNECTED_DESC" %]
 		<input type="checkbox" name="pref_showDisconnected" id="pref_showDisconnected" [% IF prefs.pref_showDisconnected %] checked [% END %] value="1" />
 	[% END %]	

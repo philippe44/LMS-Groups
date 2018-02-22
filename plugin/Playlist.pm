@@ -6,8 +6,6 @@ package Slim::Player::Playlist;
 	$client object when stopping playback.
 =cut
 
-sub _groupOverload { 1 }
-
 sub stopAndClear {
 	my $client = shift;
 	

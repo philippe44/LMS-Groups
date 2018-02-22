@@ -1,11 +1,16 @@
+0.5.1
+ - Pause breakup timeout us user settable
+
 0.5.0
- - When a member stops on its own, mark it so that it will not re-join the group at next group resume/start if it is playing
- 
+ - Pause breakup timeout us user settable
+ - When a member is taken away from a group, it is makred so that when the group stops or play something different, that player will nor re-join unless it is stopped
+
 0.4.1
  - build codec list based on connected players
  
 0.4.0
  - Group Player volume should ignore players with fixed volume 
+ - When pause requested by a member, disassemble group after 30 min
  
 0.3.2
  - with LMS version 7.9.1 of 01/22/2018, groups appear separately in webUI (credits @mherger)

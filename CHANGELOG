@@ -1,3 +1,10 @@
+0.5.1
+ - Pause breakup timeout us user settable
+
+0.5.0
+ - Pause breakup timeout us user settable
+ - When a member is taken away from a group, it is makred so that when the group stops or play something different, that player will nor re-join unless it is stopped
+
 0.4.1
  - build codec list based on connected players
  

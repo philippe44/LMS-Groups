@@ -37,7 +37,6 @@ sub resume { 1 }
 sub pauseForInterval { 1 }
 sub skipAhead { 1 }
 sub needsWeightedPlayPoint { 0 }
-sub fade_volume { 1 }
 sub connected { $_[0]->tcpsock }
 # sub ipport { '127.0.0.1:0' }
 
@@ -116,6 +115,13 @@ sub initPrefs {
 	$client->SUPER::initPrefs;
 }
 
+sub fade_volume {
+	my ($client, $fade, $callback, $callbackargs) = @_;
+	
+	$callback->(@{$callbackargs}) if ($callback);
+	return 1;
+}
+
 sub songElapsedSeconds {
 	my $client = shift;
 	
@@ -125,7 +131,7 @@ sub songElapsedSeconds {
 	
 	# memorise last position for when we'll lose surrogate (pause)
 	$client->SUPER::songElapsedSeconds($surrogate->songElapsedSeconds) if $surrogate;
-	
+		
 	return $client->SUPER::songElapsedSeconds;
 }
 

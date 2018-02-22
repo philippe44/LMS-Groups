@@ -34,6 +34,7 @@ $prefs->init({
 	# can't set prefs at a true value for checkboxes (unchecked = undef)
 	# restoreStatic => 1,
 	showDisconnected => 0,
+	breakupTimeout => 30,
 });
 
 

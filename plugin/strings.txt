@@ -28,6 +28,16 @@ PLUGIN_GROUPS_SHOWDISCONNECTED_DESC
 	EN	Show all players, including devices which currently aren't connected.
 	FR	Montre tous les lecteurs, incluant ceux qui sont déconnectés
 	
+PLUGIN_GROUPS_BREAKUPTIMEOUT
+	DE	Gruppe Abbruchzeitlimit
+	EN	Group breakup timeout
+	FR	Timer de séparation
+	
+PLUGIN_GROUPS_BREAKUPTIMEOUT_DESC
+	DE	When pause is pressed on a member and to allow resume, the group will stay assembled for this amount of minutes (0 = no limit)
+	EN	When pause is pressed on a member and to allow resume, the group will stay assembled for this amount of minutes (0 = no limit)
+	FR	Lors la pause est faite sur un player individuel et afin de permettre la reprise, le groupe restera assemblé pour ce nombre minutes (0 = pas de limite)
+	
 PLUGIN_GROUPS_NEWGROUP
 	DE	Neue Gruppe hinzufügen
 	EN	Add a new Group Player
