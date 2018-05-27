@@ -166,6 +166,9 @@ sub mixerVolumeCommand {
 
 sub initVolume {
 	my $master = Slim::Player::Client::getClient($_[0]);
+	
+	return unless $master;
+	
 	my $masterVolume = 0;
 	my $members = $prefs->client($master)->get('members');
 	my $volumes = $prefs->client($master)->get('volumes');

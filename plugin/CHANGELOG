@@ -1,3 +1,6 @@
+0.5.2
+ - avoid crashing webUI when no master in initVolume
+ 
 0.5.1
  - Pause breakup timeout us user settable
 
