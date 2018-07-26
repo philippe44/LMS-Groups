@@ -1,5 +1,11 @@
 <?xml version='1.0' standalone='yes'?>
 <extensions>
+  <defaultState>enabled</defaultState>
+  <creator>philippe_44</creator>
+  <optionsURL>plugins/Groups/settings/basic.html</optionsURL>
+  <version>0.5.3</version>
+  <name>PLUGIN_GROUPS_NAME</name>
+  <id></id>
   <module>Plugins::Groups::Plugin</module>
   <description>PLUGIN_GROUPS_DESC</description>
   <targetApplication>
@@ -7,12 +13,6 @@
     <minVersion>7.7</minVersion>
     <maxVersion>*</maxVersion>
   </targetApplication>
-  <id></id>
-  <optionsURL>plugins/Groups/settings/basic.html</optionsURL>
-  <name>PLUGIN_GROUPS_NAME</name>
   <type>2</type>
-  <defaultState>enabled</defaultState>
   <email>philippe_44@outlook</email>
-  <creator>philippe_44</creator>
-  <version>0.5.2</version>
 </extensions>

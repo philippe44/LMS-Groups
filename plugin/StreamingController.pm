@@ -228,7 +228,7 @@ sub doGroup {
 		
 		# memorize and set volume of members, but only memorize the original one
 		my $volume = $member->pluginData('volume');
-		$member->pluginData(volume => $member->volume) if !defined($volume) || $volume == -1;
+		$member->pluginData(volume => $sprefs->client($member)->get("volume")) if !defined($volume) || $volume == -1;
 		# request should be ignored if fixed volume but do not try to set a wrong volume (-1)
 		Slim::Control::Request::executeRequest($member, ['mixer', 'volume', $volumes->{$member->id}]) if $volumes->{$member->id} != -1;
 	}

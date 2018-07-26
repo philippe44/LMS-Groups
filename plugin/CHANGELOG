@@ -1,3 +1,6 @@
+0.5.3
+ - volume backup when assembling group shall not user $member->volume (in case player is paused, e.g.) but get it from the prefs
+
 0.5.2
  - avoid crashing webUI when no master in initVolume
  
