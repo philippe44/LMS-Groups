@@ -168,10 +168,10 @@ sub play {
 	
 	# do not try to play if there is no member
 	$log->error("Group player has no member") if !$count;
-	
-	# huh-huh, some fool tried to sync a group with another player
+
+	# something wrong happened, we don't have the right controller anymore
 	if ( !$client->controller->isa("Plugins::Groups::StreamingController") ) {
-		$log->error("NEVER SYNCHRONIZE A GROUP WITH A PLAYER ", $client->name);
+		$log->error("controller overwritten ", $client->name);
 		
 		# exit from that group ASAP and restore our crashed controller
 		Slim::Utils::Timers::setTimer( $client,	Time::HiRes::time(), sub {
@@ -192,13 +192,7 @@ sub power {
 	my $noplay = shift;
 	
 	return $client->SUPER::power($on, $noplay) unless defined $on;
-	
-	# try to recover from silly user synchronizing a group as this cannot be prevented
-	if ( !$client->controller->isa("Plugins::Groups::StreamingController") ) {
-		$client->controller(Plugins::Groups::StreamingController->new($client));
-		$log->error("GROUP CONTROLLER WAS INCORRECT ", $client->name);
-	}	
-	
+		
 	# seems that members must be powered on/off before the following is executed
 	my $power = $prefs->client($client)->get('powerMaster');
 	main::INFOLOG && $log->is_info && $log->info("powering $on all members for ", $client->name) if $power;

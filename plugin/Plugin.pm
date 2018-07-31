@@ -6,6 +6,7 @@ use base qw(Slim::Plugin::Base);
 
 use Socket;
 use List::Util qw(first);
+use Data::Dumper;
 
 use Slim::Utils::Strings qw (string);
 use Slim::Utils::Misc;
@@ -29,6 +30,7 @@ my $log = Slim::Utils::Log->addLogCategory({
 my $prefs = preferences('plugin.groups');
 my $sprefs = preferences('server');
 my $originalVolumeHandler;
+my $originalSyncHandler;
 
 $prefs->init({
 	# can't set prefs at a true value for checkboxes (unchecked = undef)
@@ -89,6 +91,74 @@ sub initPlugin {
 	}
 	
 	$originalVolumeHandler = Slim::Control::Request::addDispatch(['mixer', 'volume', '_newvalue'], [1, 0, 0, \&mixerVolumeCommand]);
+	$originalSyncHandler = Slim::Control::Request::addDispatch(['sync', '_indexid-'], [1, 0, 1, \&syncCommand]);
+}
+
+sub doTransfer {
+	my ($source, $dest) = @_;
+			
+	# need to preserve song index and seek data
+	my $seekdata = $source->controller->playingSong->getSeekData($source->controller->playingSongElapsed);
+	my $index = $source->controller->playingSong->index;
+	
+	# stop the destination and grab playlist from source	
+	$dest->controller->stop;
+	Slim::Player::Playlist::copyPlaylist($dest, $source);
+				
+	# start group player, it should assemble itself
+	$dest->controller->play($index, $seekdata);
+	Slim::Control::Request::notifyFromArray($dest, ['playlist', 'play']);
+	Slim::Control::Request::notifyFromArray($dest, ['playlist', 'sync']);
+	
+	$source->controller->stop;
+	Slim::Control::Request::notifyFromArray($source, ['playlist', 'stop']);
+	Slim::Control::Request::notifyFromArray($source, ['playlist', 'sync']);
+}
+
+sub syncCommand {
+	my $request = shift;
+	my $client  = $request->client;
+	my $id = $request->getParam('_indexid-');
+	my $slave = Slim::Player::Client::getClient($id) if $id !~ /-/;
+	
+	# make sure Group players are involved
+	if (!$client->isa("Plugins::Groups::Player") && 
+	    (!$slave || !$slave->isa("Plugins::Groups::Player")) && 
+		!$client->pluginData('transfer')) {
+		
+		main::DEBUGLOG && $log->debug("nothing to process");
+		$originalSyncHandler->($request);
+		return;
+	}
+	
+	main::DEBUGLOG && $log->debug("sync handler for groups", Dumper($request));
+			
+	if ($id !~ /-/) {
+		# mark the player receiving sync so that we can do the transfer 
+		# if/when the unsync is received for that player
+		main::INFOLOG && $log->info("marking player ", $client->id, " for transfer to ", $slave->id);
+		$client->pluginData(transfer => $slave);
+		
+		# this is a transfer, so it should be done super quickly, otherwise 
+		# it's a user attempt that shall be discarded (5s should be enough)
+		# iPeng is trying to re-sync previous syncgroup members together after
+		# a transfer ... this also takes care of that
+		Slim::Utils::Timers::setTimer($client, time() + 5, sub { 
+							 $client->pluginData(transfer => undef);
+							 main::INFOLOG && $log->info("transfer timeout", $client->id);
+						}
+		);
+		
+	} elsif ($slave = $client->pluginData('transfer')) {
+		# if the player is marked, then do the transfer
+		main::INFOLOG && $log->info("transferring from ", $client->id, " to ", $slave->id);
+		$client->pluginData(transfer => undef);
+		doTransfer($client, $slave);
+	} else {
+		$log->error("don't know what we're doing here ", $client->id);
+	}
+	
+	$request->setStatusDone;	
 }
 
 sub mixerVolumeCommand {
@@ -156,7 +226,7 @@ sub mixerVolumeCommand {
 	}
 
 	# memorize volumes for when group will be re-assembled
-	$prefs->client($master)->set('volumes', $volumes) if scalar @$members;
+	$prefs->client($master)->set('volumes', $volumes);
 	
 	# all dispatch done
 	$master->_volumeDispatching(0);	

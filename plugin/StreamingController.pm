@@ -52,6 +52,9 @@ user just wanted to change something on this particular player, it would power
 it off or change its playlist (see above). Then, one can assume that user might
 want to press resume on a member and expects the virtual to resume. For this 
 to be achieved, the virtual is not disassembled. 
+
+This controller MUST act like a regular controller when its master is not 
+a Group player
 =cut
 
 use constant TRACK_END	=> 0x0000;
@@ -62,6 +65,9 @@ my $prefs = preferences('plugin.groups');
 my $sprefs = preferences('server');
 my $log   = logger('plugin.groups');
 
+####################################################################
+# overloaded functions
+
 sub new {
 	my ($class, $client) = @_;
 	return $class->SUPER::new($client);
@@ -71,8 +77,9 @@ sub new {
 
 sub playerTrackStarted {
 	my ($self, $client) = @_;
+	return $self->SUPER::playerTrackStarted($client) unless $self->master->isa("Plugins::Groups::Player");
+	
 	my $surrogate = _Surrogate($self);
-				
 	main::INFOLOG && $log->is_info && $log->info("track started $client");
 	
 	# send started on behalf of master
@@ -83,24 +90,26 @@ sub playerTrackStarted {
 
 sub playerStatusHeartbeat {
 	my ($self, $client) = @_;
+	return $self->SUPER::playerStatusHeartbeat($client) unless $self->master->isa("Plugins::Groups::Player");
+	
 	my $surrogate = _Surrogate($self);
-		
 	main::DEBUGLOG && $log->is_debug && $log->debug("status heartbeat $client");
 	
 	# send heartbeat on behalf of master
-	$self->SUPER::playerStatusHeartbeat($client->master) if $client == $surrogate;
+	$self->SUPER::playerStatusHeartbeat($client->master) if $client == $surrogate && $self->master->isa("Plugins::Groups::Player");
 	
 	return $self->SUPER::playerStatusHeartbeat($client);
 }
 
 sub playerStopped {
 	my ($self, $client) = @_;
+	return $self->SUPER::playerStopped($client) unless $self->master->isa("Plugins::Groups::Player");
+	
 	my $surrogate = _Surrogate($self);
-		
 	main::INFOLOG && $log->is_info && $log->info("track ended $client");
 	
 	# send stop on behalf of master
-	if ($client == $surrogate) {
+	if ($client == $surrogate && $self->master->isa("Plugins::Groups::Player")) {
 		$self->SUPER::playerStopped($client->master);
 		$self->undoGroup(TRACK_END);		
 	}
@@ -110,6 +119,7 @@ sub playerStopped {
 
 sub play {
 	my $self = shift;
+	return $self->SUPER::play(@_) unless $self->master->isa("Plugins::Groups::Player");
 	
 	main::INFOLOG && $log->is_info && $log->info("play request $self");
 
@@ -122,10 +132,9 @@ sub play {
 sub stop {
 	my $self = shift;
 	my $client = shift;
+	return $self->SUPER::stop(@_) unless $self->master->isa("Plugins::Groups::Player");
 	
 	main::INFOLOG && $log->is_info && $log->info("stop request $self $client");
-	
-	return $self->SUPER::stop(@_) unless $self->master->isa("Plugins::Groups::Player");
 	
 	# when a member stops on its own, do not stop the whole group, instead 
 	# just unsync the member to let the group continue, unless the member is
@@ -148,6 +157,7 @@ sub stop {
 
 sub resume {
 	my $self = shift;
+	return $self->SUPER::resume(@_) unless $self->master->isa("Plugins::Groups::Player");
 	
 	main::INFOLOG && $log->is_info && $log->info("resume request $self");
 	
@@ -158,6 +168,7 @@ sub resume {
 sub pause {
 	my $self = shift;
 	my $client = shift;
+	return $self->SUPER::pause(@_) unless $self->master->isa("Plugins::Groups::Player");
 	
 	main::INFOLOG && $log->is_info && $log->info("pause request $self from $client with master ", $self->master);
 
@@ -173,7 +184,48 @@ sub pause {
 	
 	return $self->SUPER::pause(@_);
 }
-						
+
+sub sync {
+	my $self = shift;
+	my ($player) = @_;
+	my $members = $prefs->client($self->master)->get('members');
+	
+	# double precaution (shall already be prevented by sync command overload)
+	if (grep { $_ eq $player->id } @$members) {
+		$log->error("cannot statically sync a player to his group ", $self->master->id, " ", $player->id);
+		return;
+	}
+	
+	return $self->SUPER::sync(@_);
+}
+
+=comment
+sub unsync {
+	my $self = shift;
+	my ($player, $keepSyncGroupId) = @_;
+	
+	# do not manually remove members
+	if ( caller(0) =~ m/Commands/) {
+		$log->error("can't manually remove members from a group ");
+		return;
+	}
+	
+	# do not unsync a Group player! (this means it's beeing synced with another controller)
+	# TODO: still need to make sure the unsync is always called for a group which means add 
+	# a fantom non-connected player
+	if ( $player->isa("Plugins::Groups::Player") && scalar @{ $self->{'players'} } > 1) {
+		$log->error("can't remove ourselves from own group");
+		return;
+	}	
+	
+	$self->SUPER::unsync(@_);
+}
+=cut
+	
+
+####################################################################
+# support functions
+
 sub doGroup {
 	my ($self, $resume) = @_;
 		
@@ -194,7 +246,7 @@ sub doGroup {
 		my $member = Slim::Player::Client::getClient($_);
 		next unless $member && (!$member->pluginData('marker') || !$member->controller->isPlaying);
 				
-		# un-mark client now that it has re-join the group		
+		# un-mark client now that it has re-joined the group		
 		$member->pluginData(marker => 0);		
 		
 		# power on all members if needed, only on first play, not on resume
@@ -281,7 +333,7 @@ sub _detach {
 	my $syncGroupId = $client->pluginData('syncgroupid');
 	$client->pluginData(syncgroupid => -1);
 	
-	# marker the player
+	# mark the player
 	$client->pluginData(marker => $marker || 0);
 	
 	# reset volume to previous value and free up room, no risk of volume loop
@@ -318,38 +370,6 @@ sub _detach {
 	}
 }
 
-sub sync {
-	my $self = shift;
-	my ($player) = @_;
-	
-	# do not manaually add members
-	$log->error("can't manually add members to a group");
-	return; 
-
-	return $self->SUPER::sync(@_);
-}
-
-sub unsync {
-	my $self = shift;
-	my ($player, $keepSyncGroupId) = @_;
-	
-	# do not manually remove members
-	if ( caller(0) =~ m/Commands/) {
-		$log->error("can't manually remove members from a group ");
-		return;
-	}
-	
-	# do not unsync a Group player! (this means it's beeing synced with another controller)
-	# TODO: still need to make sure the unsync is always called for a group which means add 
-	# a fantom non-connected player
-	if ( $player->isa("Plugins::Groups::Player") && scalar @{ $self->{'players'} } > 1) {
-		$log->error("can't remove ourselves from own group");
-		return;
-	}	
-	
-	$self->SUPER::unsync(@_);
-}
-		
 sub _Surrogate {
 	my $self = shift;
 	my @activePlayers = $self->activePlayers;
