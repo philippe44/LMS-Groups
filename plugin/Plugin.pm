@@ -6,7 +6,7 @@ use base qw(Slim::Plugin::Base);
 
 use Socket;
 use List::Util qw(first);
-use Data::Dumper;
+use Data::Dump qw(dump);
 
 use Slim::Utils::Strings qw (string);
 use Slim::Utils::Misc;
@@ -131,7 +131,7 @@ sub syncCommand {
 		return;
 	}
 	
-	main::DEBUGLOG && $log->debug("sync handler for groups", Dumper($request));
+	main::DEBUGLOG && $log->debug("sync handler for groups", dump($request));
 			
 	if ($id !~ /-/) {
 		# mark the player receiving sync so that we can do the transfer 
