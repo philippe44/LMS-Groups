@@ -190,12 +190,12 @@ sub sync {
 	my ($player) = @_;
 	my $members = $prefs->client($self->master)->get('members');
 	
-	# double precaution (shall already be prevented by sync command overload)
+	# do not allow a player to sync to his own group (iPeng tries that)
 	if (grep { $_ eq $player->id } @$members) {
-		$log->error("cannot statically sync a player to his group ", $self->master->id, " ", $player->id);
+		$log->warn("cannot statically sync a player to his group ", $self->master->id, " ", $player->id);
 		return;
 	}
-	
+				
 	return $self->SUPER::sync(@_);
 }
 
@@ -231,10 +231,7 @@ sub doGroup {
 		
 	# stop disassemble timers started on individual player's pause
 	Slim::Utils::Timers::killTimers($self, \&undoGroup);		
-	
-	# we might already be assembled if a pause came from a single player
-	return if scalar @{ $self->{'allPlayers'} } > 1;
-	
+		
 	my $master = $self->master;
 	my $members = $prefs->client($master)->get('members') || return;
 	my $volumes = $prefs->client($master)->get('volumes');
@@ -244,7 +241,7 @@ sub doGroup {
 	
 	foreach (@$members) {
 		my $member = Slim::Player::Client::getClient($_);
-		next unless $member && (!$member->pluginData('marker') || !$member->controller->isPlaying);
+		next unless $member && $member->controller != $self  && (!$member->pluginData('marker') || !$member->controller->isPlaying);
 				
 		# un-mark client now that it has re-joined the group		
 		$member->pluginData(marker => 0);		
@@ -292,12 +289,15 @@ sub doGroup {
 sub undoGroup {
 	my ($self, $kind) = @_;
 	my $master = $self->master;
+	my $members = $prefs->client($master)->get('members');
 	
 	# stop disassemble timers started on individual player's pause
 	Slim::Utils::Timers::killTimers($self, \&undoGroup);		
 	
-	# disassemble the group
+	# disassemble the group, except the statically linked
 	foreach my $member ($master->syncedWith) {
+		next unless grep { $_ eq $member->id} @$members;
+		
 		main::INFOLOG && $log->is_info && $log->info("undo group sync for ", $member->name, " from ", $master->name);
 		$self->SUPER::unsync($member);
 		

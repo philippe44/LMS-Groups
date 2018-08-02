@@ -140,12 +140,12 @@ sub syncCommand {
 		$client->pluginData(transfer => $slave);
 		
 		# this is a transfer, so it should be done super quickly, otherwise 
-		# it's a user attempt that shall be discarded (5s should be enough)
-		# iPeng is trying to re-sync previous syncgroup members together after
-		# a transfer ... this also takes care of that
+		# it's a user attempt that shall be process normally. The streaming
+		# controller will reject if not valid (member of the group ...)
 		Slim::Utils::Timers::setTimer($client, time() + 5, sub { 
 							 $client->pluginData(transfer => undef);
-							 main::INFOLOG && $log->info("transfer timeout", $client->id);
+							 main::INFOLOG && $log->info("transfer timeout ", $client->id);
+							 $client->controller->sync($slave) unless $slave->isa("Plugins::Groups::Player");
 						}
 		);
 		

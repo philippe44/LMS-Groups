@@ -1,3 +1,7 @@
+0.6.0
+ - enable playlist transfer with at least iPeng and MWWM
+ - players can be manually / statically added to a group
+ 
 0.5.3
  - volume backup when assembling group shall not user $member->volume (in case player is paused, e.g.) but get it from the prefs
 
