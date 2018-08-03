@@ -115,6 +115,17 @@ sub doTransfer {
 	Slim::Control::Request::notifyFromArray($source, ['playlist', 'sync']);
 }
 
+sub syncTimer {
+	my $client = shift;
+	my $slave = $client->pluginData('transfer');
+	
+	main::INFOLOG && $log->info("transfer timeout ", $client->id);
+	return unless $slave;
+	
+	$client->pluginData(transfer => undef);
+	$client->controller->sync($slave) unless $slave->isa("Plugins::Groups::Player");
+}
+
 sub syncCommand {
 	my $request = shift;
 	my $client  = $request->client;
@@ -142,15 +153,10 @@ sub syncCommand {
 		# this is a transfer, so it should be done super quickly, otherwise 
 		# it's a user attempt that shall be process normally. The streaming
 		# controller will reject if not valid (member of the group ...)
-		Slim::Utils::Timers::setTimer($client, time() + 5, sub { 
-							 $client->pluginData(transfer => undef);
-							 main::INFOLOG && $log->info("transfer timeout ", $client->id);
-							 $client->controller->sync($slave) unless $slave->isa("Plugins::Groups::Player");
-						}
-		);
-		
+		Slim::Utils::Timers::setTimer($client, time() + 3, \&syncTimer);
 	} elsif ($slave = $client->pluginData('transfer')) {
 		# if the player is marked, then do the transfer
+		Slim::Utils::Timers::killTimers($client, \&syncTimer);		
 		main::INFOLOG && $log->info("transferring from ", $client->id, " to ", $slave->id);
 		$client->pluginData(transfer => undef);
 		doTransfer($client, $slave);
