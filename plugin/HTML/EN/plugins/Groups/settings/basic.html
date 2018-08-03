@@ -1,6 +1,7 @@
 [% PROCESS settings/header.html %]
-	[% WRAPPER setting title="PLUGIN_GROUPS_RESTORESTATIC" desc="PLUGIN_GROUPS_RESTORESTATIC_DESC" %]
-		<input type="checkbox" name="pref_restoreStatic" id="pref_restoreStatic" [% IF prefs.pref_restoreStatic %] checked [% END %] value="1" />
+	[% WRAPPER setting title="PLUGIN_GROUPS_SYNCOPTIONS" desc="PLUGIN_GROUPS_SYNCOPTIONS_DESC" %]
+		<input type="checkbox" name="pref_restoreStatic" id="pref_restoreStatic" [% IF prefs.pref_restoreStatic %] checked [% END %] value="1" />&nbsp[% "PLUGIN_GROUPS_RESTORESTATIC" | string %]
+		&nbsp&nbsp<input type="checkbox" name="pref_syncReal" id="pref_syncReal" [% IF prefs.pref_syncReal %] checked [% END %] value="1" />&nbsp[% "PLUGIN_GROUPS_SYNCREAL" | string %]
 	[% END %]	
 	
 	[% WRAPPER setting title="PLUGIN_GROUPS_BREAKUPTIMEOUT" desc="PLUGIN_GROUPS_BREAKUPTIMEOUT_DESC" %]

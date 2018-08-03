@@ -87,14 +87,25 @@ PLUGIN_GROUPS_OPTIONSVOLUME
 	DE	Lautstärke
 	EN	Volume
 	FR	Volume
+	
+PLUGIN_GROUPS_SYNCOPTIONS
+	DE	Synchronisierungsoptionen
+	EN	Syncronization options
+	FR	Options de synchronization
 
+PLUGIN_GROUPS_SYNCOPTIONS_DESC
+	DE	<i>- Gruppen beim Ausschalten...: </i>Wenn eine Geräte Gruppe gestoppt wird, können die enthaltenen Player wieder der zuvor zugehörigen Synchronisations-Gruppe zugewiesen werden. Die Wiedergabe wird mit dem nächsten Titel wieder hergestellt.<br><i>- (to be completed): </i>(to be completed)
+	EN	<i>- Restore sync group: </i>When a Group Player stops, members that belonged to a LMS sync group can be re-associated to it. They will resume playing at next track<br><i>- Player can ge synchronized...: </i> A real player can be manually synchronized to a Group Player (its volume remains independant)
+	FR	<i>- Rétablir les groupes...: </i>Lorsqu'un Lecteur Groupé s'arrête, les membres appartenant à un groupe de synchronisation peuvent lui être ré-affectés. Ils ne recommenceront à jouer qu'à la piste suivante<br><i>- Un Lecteur peut être...: </i>Un lecteur peut être ajouté manuellement à un Lecteur Groupé (son volume reste indépendant)
+	
 PLUGIN_GROUPS_RESTORESTATIC
 	DE	Gruppen beim Ausschalten wieder herstellen
 	EN	Restore sync groups 
 	FR	Rétablir les groupes de synchronisation
-
-PLUGIN_GROUPS_RESTORESTATIC_DESC
-	DE	Wenn eine Geräte Gruppe gestoppt wird, können die enthaltenen Player wieder der zuvor zugehörigen Synchronisations-Gruppe zugewiesen werden. Die Wiedergabe wird mit dem nächsten Titel wieder hergestellt.
-	EN	When a Group Player stops, members that belonged to a LMS sync group can be re-associated to it. They will resume playing at next track
-	FR	Lorsqu'un Lecteur Groupé s'arrête, les membres appartenant à un groupe de synchronisation peuvent lui être ré-affectés. Ils ne recommenceront à jouer qu'à la piste suivante
+	
+PLUGIN_GROUPS_SYNCREAL
+	DE	(to be completed)
+	EN	Synchronize to Group Players
+	FR	Synchronise avec les Lecteurs Groupés
+	
 

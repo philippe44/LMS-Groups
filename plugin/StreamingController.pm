@@ -186,6 +186,8 @@ sub pause {
 }
 
 sub sync {
+	return unless $prefs->get('syncReal');
+
 	my $self = shift;
 	my ($player) = @_;
 	my $members = $prefs->client($self->master)->get('members');
