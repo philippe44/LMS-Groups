@@ -110,9 +110,12 @@ sub doTransfer {
 	Slim::Control::Request::notifyFromArray($dest, ['playlist', 'play']);
 	Slim::Control::Request::notifyFromArray($dest, ['playlist', 'sync']);
 	
-	$source->controller->stop;
-	Slim::Control::Request::notifyFromArray($source, ['playlist', 'stop']);
-	Slim::Control::Request::notifyFromArray($source, ['playlist', 'sync']);
+	# if source player was member of dest group, do not stop it
+	if ($source->controller != $dest->controller) {
+		$source->controller->stop;
+		Slim::Control::Request::notifyFromArray($source, ['playlist', 'stop']);
+		Slim::Control::Request::notifyFromArray($source, ['playlist', 'sync']);
+	}	
 }
 
 sub syncTimer {
