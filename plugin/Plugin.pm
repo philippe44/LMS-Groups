@@ -125,7 +125,8 @@ sub syncTimer {
 	main::INFOLOG && $log->info("transfer timeout ", $client->id);
 	return unless $slave;
 	
-	$client->pluginData(transfer => undef);
+	# because pluginData is faulty an does not allow undef to be set...
+	$client->pluginData(transfer => 0);
 	$client->controller->sync($slave) unless $slave->isa("Plugins::Groups::Player");
 }
 
@@ -134,6 +135,8 @@ sub syncCommand {
 	my $client  = $request->client;
 	my $id = $request->getParam('_indexid-');
 	my $slave = Slim::Player::Client::getClient($id) if $id !~ /-/;
+	
+	main::DEBUGLOG && $log->debug("sync handler for groups ", dump($request));
 	
 	# make sure Group players are involved
 	if (!$client->isa("Plugins::Groups::Player") && 
@@ -145,12 +148,10 @@ sub syncCommand {
 		return;
 	}
 	
-	main::DEBUGLOG && $log->debug("sync handler for groups", dump($request));
-			
 	if ($id !~ /-/) {
 		# mark the player receiving sync so that we can do the transfer 
 		# if/when the unsync is received for that player
-		main::INFOLOG && $log->info("marking player ", $client->id, " for transfer to ", $slave->id);
+		main::INFOLOG && $log->info("marking player ", $client->name, " for transfer to ", $slave->name);
 		$client->pluginData(transfer => $slave);
 		
 		# this is a transfer, so it should be done super quickly, otherwise 
@@ -160,11 +161,12 @@ sub syncCommand {
 	} elsif ($slave = $client->pluginData('transfer')) {
 		# if the player is marked, then do the transfer
 		Slim::Utils::Timers::killTimers($client, \&syncTimer);		
-		main::INFOLOG && $log->info("transferring from ", $client->id, " to ", $slave->id);
-		$client->pluginData(transfer => undef);
+		main::INFOLOG && $log->info("transferring from ", $client->name, " to ", $slave->name);
+		# because pluginData is faulty an does not allow undef to be set...
+		$client->pluginData(transfer => 0);
 		doTransfer($client, $slave);
 	} else {
-		$log->error("don't know what we're doing here ", $client->id);
+		$log->error("don't know what we're doing here ", $client->name);
 	}
 	
 	$request->setStatusDone;	

@@ -1,3 +1,8 @@
+0.6.2
+ - forgot that pluginData does not allow undef as a value, grrr ...
+ - log names instead of id 
+ - move sync hook debug log on top
+ 
 0.6.1
   - players can be manually / statically added to a group
  
