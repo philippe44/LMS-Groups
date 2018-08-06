@@ -130,6 +130,28 @@ sub syncTimer {
 	$client->controller->sync($slave) unless $slave->isa("Plugins::Groups::Player");
 }
 
+=comment
+Switching playback from player A to B is usually a special pattern of events 
+that requires special handling when a Group Player is involved
+1) B is synchronized with A
+2) Within a few x00ms, B is un-synchronized
+So when receiving the request to sync B with A, do nothing except store in B
+that transfer to A might happen. When B is unsynced, if it contains A inside,
+then we do a transfer of playlist, not using sync/unsync
+If B is never unsync, then it means that it was just a real sync, so we
+execute it once a short timeout expired. All this does is delaying a tiny bit
+sync request only when Group Players are involved
+When receiving an unsync, it will just be processed normally if client
+does contains any transfer candidate.
+If X and Y are regular players and if X has nothing stored, then it's a 
+normal process, just passthrough
+It does not affect Group assembly / breakup because we call directly the
+sync/unsync functions, to the calls do not go through this filter
+iPeng does special management of source & destination when A is a member of a
+Group (normally, user should not try to use members as source) that I can't 
+deal with totally correctly. So it does create some ghost syncgroup
+=cut
+
 sub syncCommand {
 	my $request = shift;
 	my $client  = $request->client;
@@ -149,6 +171,21 @@ sub syncCommand {
 	}
 	
 	if ($id !~ /-/) {
+		# if a transfer/sync is already pending, must execute it first. There 
+		# is probaby no good solution to that problem and the way iPeng 
+		# manages switches
+		if (my $pending = $client->pluginData('transfer')) {
+			Slim::Utils::Timers::killTimers($client, \&syncTimer);		
+			if ($pending->isa("Plugins::Groups::Player")) {
+				main::INFOLOG && $log->info("pending transfer from ", $client->name, " to ", $pending->name);
+				doTransfer($client, $pending);
+			} else {
+				main::INFOLOG && $log->info("pending sync from ", $client->name, " to ", $pending->name);
+				$client->controller->sync($pending);
+			}	
+		}
+		
+		# now we're done with any pending 
 		# mark the player receiving sync so that we can do the transfer 
 		# if/when the unsync is received for that player
 		main::INFOLOG && $log->info("marking player ", $client->name, " for transfer to ", $slave->name);
@@ -157,7 +194,7 @@ sub syncCommand {
 		# this is a transfer, so it should be done super quickly, otherwise 
 		# it's a user attempt that shall be process normally. The streaming
 		# controller will reject if not valid (member of the group ...)
-		Slim::Utils::Timers::setTimer($client, time() + 3, \&syncTimer);
+		Slim::Utils::Timers::setTimer($client, time() + 2, \&syncTimer);
 	} elsif ($slave = $client->pluginData('transfer')) {
 		# if the player is marked, then do the transfer
 		Slim::Utils::Timers::killTimers($client, \&syncTimer);		
