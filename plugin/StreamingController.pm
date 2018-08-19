@@ -247,6 +247,12 @@ sub doGroup {
 				
 		# un-mark client now that it has re-joined the group		
 		$member->pluginData(marker => 0);		
+	
+		# set all prefs that inherit from vritual player
+		foreach my $key (keys($Plugins::Groups::Player::groupPrefs)) {
+			$member->pluginData($key => $sprefs->client($member)->get("$key"));
+			$sprefs->client($member)->set("$key", $sprefs->client($master)->get("$key"));
+		}
 		
 		# power on all members if needed, only on first play, not on resume
 		# unless it was forced off
@@ -346,6 +352,11 @@ sub _detach {
 	
 	# erase forced power off sequence
 	$client->pluginData(forcedPowerOff => 0);
+	
+	#restore overwritten prefs
+	foreach my $key (keys($Plugins::Groups::Player::groupPrefs)) {
+		$sprefs->client($client)->set("$key", $client->pluginData("$key"));
+	}
 				
 	# done if no sync group or not configure to restore them
 	return unless $prefs->get('restoreStatic') && $syncGroupId != -1;

@@ -1,3 +1,6 @@
+0.7.0
+ - add replaygain & fading options to virtual player
+ 
 0.6.2
  - forgot that pluginData does not allow undef as a value, grrr ...
  - log names instead of id 

@@ -27,6 +27,7 @@ sub maxTreble { 50 }
 sub minTreble { 50 }
 sub maxBass { 50 }
 sub minBass { 50 }
+sub maxTransitionDuration { 10 };
 
 sub opened { return undef }
 sub bufferFullness { 100000 }
@@ -39,6 +40,19 @@ sub skipAhead { 1 }
 sub needsWeightedPlayPoint { 0 }
 sub connected { $_[0]->tcpsock }
 # sub ipport { '127.0.0.1:0' }
+
+our $groupPrefs = {
+	'transitionType'     => 0,
+	'transitionDuration' => 10,
+	'transitionSmart'    => 1,
+	'replayGainMode'     => 0,
+	'remoteReplayGain'   => -5,
+};	
+
+my $defaultPrefs = {
+	%{ $groupPrefs },
+	'maxBitrate'		 => 0,
+};
 
 # override the accessor from Client.pm: always return an empty list
 sub chunks { [] }
@@ -100,9 +114,7 @@ sub initPrefs {
 	my $client = shift;
 
 	# make sure any preferences unique to this client may not have set are set to the default
-	$sprefs->client($client)->init( {
-		'maxBitrate'	=> 0,
-	});
+	$sprefs->client($client)->init($defaultPrefs);
 	
 	# then init our own prefs
 	$prefs->client($client)->init({
