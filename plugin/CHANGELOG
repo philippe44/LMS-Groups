@@ -1,3 +1,6 @@
+0.7.1
+ - use % for accessing keys of groupPrefs
+ 
 0.7.0
  - add replaygain & fading options to virtual player
  

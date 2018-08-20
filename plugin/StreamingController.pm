@@ -249,7 +249,7 @@ sub doGroup {
 		$member->pluginData(marker => 0);		
 	
 		# set all prefs that inherit from vritual player
-		foreach my $key (keys($Plugins::Groups::Player::groupPrefs)) {
+		foreach my $key (keys %$Plugins::Groups::Player::groupPrefs) {
 			$member->pluginData($key => $sprefs->client($member)->get("$key"));
 			$sprefs->client($member)->set("$key", $sprefs->client($master)->get("$key"));
 		}
@@ -354,7 +354,7 @@ sub _detach {
 	$client->pluginData(forcedPowerOff => 0);
 	
 	#restore overwritten prefs
-	foreach my $key (keys($Plugins::Groups::Player::groupPrefs)) {
+	foreach my $key (keys %$Plugins::Groups::Player::groupPrefs) {
 		$sprefs->client($client)->set("$key", $client->pluginData("$key"));
 	}
 				
