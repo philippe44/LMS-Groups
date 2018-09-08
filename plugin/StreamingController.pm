@@ -248,38 +248,33 @@ sub doGroup {
 		# un-mark client now that it has re-joined the group		
 		$member->pluginData(marker => 0);		
 	
-		# set all prefs that inherit from vritual player
-		foreach my $key (keys %$Plugins::Groups::Player::groupPrefs) {
-			$member->pluginData($key => $sprefs->client($member)->get("$key"));
-			$sprefs->client($member)->set("$key", $sprefs->client($master)->get("$key"));
-		}
-		
 		# power on all members if needed, only on first play, not on resume
 		# unless it was forced off
 		Slim::Control::Request::executeRequest($member, ['power', 1, 1]) 
 			if $prefs->client($master)->get('powerPlay') && (!$resume || $member->pluginData('forcedPowerOff'));
 
-=comment		
-		if this player used to belong to a syncgroup, save it for later 
-		restoration. Always set the restore id to something so that
-		undoGroup does not create fantom groups (see header note)
-		FIXME: cannot find a way to erase / set to undef a pluginData key ...
-=cut		
-		my $syncGroupId = $sprefs->client($member)->get('syncgroupid') // -1;
-		$member->pluginData(syncgroupid => $syncGroupId) unless 
-						defined $member->pluginData('syncgroupid') && 
-						$member->pluginData('syncgroupid') != -1;
-						
-		# memorize playlist information	(take a copy of lists)			
-		$member->pluginData(playlist => {
+		# only memorize syncgroupid, playlist and prefs if we are not already part of a Group 
+		if (!$member->controller->isa("Plugins::Groups::StreamingController")) {
+			$member->pluginData(syncgroupid => $sprefs->client($member)->get('syncgroupid') // -1);
+			$member->pluginData(playlist => {
 						playlist 	=> [ @{$member->playlist} ],
 						shufflelist => [ @{$member->shufflelist} ],
 						index   	=> Slim::Player::Source::streamingSongIndex($member),
 						shuffle  	=> $sprefs->client($member)->get('shuffle'),
 						repeat		=> $sprefs->client($member)->get('repeat'),
 					} );	
+
+			foreach my $key (keys %$Plugins::Groups::Player::groupPrefs) {
+				$member->pluginData($key => $sprefs->client($member)->get("$key"));
+			}
+		}	
+
+		# set all prefs that inherit from virtual player
+		foreach my $key (keys %$Plugins::Groups::Player::groupPrefs) {
+			$sprefs->client($member)->set("$key", $sprefs->client($master)->get("$key"));
+		}		
 			
-		main::INFOLOG && $log->is_info && $log->info("sync ", $member->name, " to ", $master->name, " former syncgroup ", $syncGroupId);
+		main::INFOLOG && $log->is_info && $log->info("sync ", $member->name, " to ", $master->name, " former syncgroup ", $member->pluginData('syncgroupid'));
 				
 		$self->SUPER::sync($member, $resume);
 		
@@ -338,7 +333,7 @@ sub _detach {
 	my ($client, $marker) = @_;
 	
 	# 'make room' in memorized static group for next playback
-	my $syncGroupId = $client->pluginData('syncgroupid');
+	my $syncGroupId = $client->pluginData('syncgroupid') // -1;
 	$client->pluginData(syncgroupid => -1);
 	
 	# mark the player
@@ -353,7 +348,7 @@ sub _detach {
 	# erase forced power off sequence
 	$client->pluginData(forcedPowerOff => 0);
 	
-	#restore overwritten prefs
+	# restore overwritten prefs
 	foreach my $key (keys %$Plugins::Groups::Player::groupPrefs) {
 		$sprefs->client($client)->set("$key", $client->pluginData("$key"));
 	}

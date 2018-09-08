@@ -297,12 +297,14 @@ sub initVolume {
 	
 	foreach my $id (@$members) {
 		my $member = Slim::Player::Client::getClient($id);
+		# if member is not connected, just use the last known volume but don't ignore it
+		next unless $member;
 		
 		# do no take into account 100% fixed volume
 		if ($sprefs->client($member)->get('digitalVolumeControl')) {
 			# initialize member's volume if possible & needed	
 			$count++;
-			$volumes->{$id} = $member->volume if defined $member && !defined $volumes->{$id};
+			$volumes->{$id} = $member->volume if !defined $volumes->{$id};
 			$masterVolume += $volumes->{$id};
 		} else { 
 			$volumes->{$id} = -1; 
@@ -311,8 +313,8 @@ sub initVolume {
 	
 	$prefs->client($master)->set('volumes', $volumes);	
 	
-	# set master's volume, if none abitrary set at 100%
-	$masterVolume = $count ? $masterVolume / $count : 100;
+	# set master's volume, if none abitrary set at 50%
+	$masterVolume = $count ? $masterVolume / $count : 50;
 	main::INFOLOG && $log->is_info && $log->info("new master volume $masterVolume");
 	
 	# this is init, so avoid loop in mixercommand (and can't rely on _volumeDispatching)

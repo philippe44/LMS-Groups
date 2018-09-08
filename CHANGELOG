@@ -1,3 +1,10 @@
+0.7.3
+ - when playing from Group to Group, players that were member of both were restored as static groups
+ - original playlist & preferences were lost when switching between groups
+
+0.7.2
+ - in initVolume, don't access clients's prefs if it's not connected
+ 
 0.7.1
  - use % for accessing keys of groupPrefs
  
