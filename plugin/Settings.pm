@@ -14,7 +14,6 @@ use Plugins::Groups::Player;
 my $prefs = preferences('plugin.groups');
 my $sprefs = preferences('server');
 my $log   = logger('plugin.groups');
-my @playerList;
 
 sub name {
 	return Slim::Web::HTTP::CSRF->protectName('PLUGIN_GROUPS_NAME');
@@ -35,7 +34,12 @@ sub handler {
 	
 	if ($params->{saveSettings}) {
 		foreach my $id ( Plugins::Groups::Plugin->groupIDs() ) {
-		
+	
+			# need to memorize all existing members if we only show connected players
+			my $client = Slim::Player::Client::getClient($id);
+			my $previous = $prefs->client($client)->get('members') if $client && !$prefs->get('showDisconnected');
+
+			# update preferences by creating a new set
 			my $cprefs = Slim::Utils::Prefs::Client->new( $prefs, $id, 'no-migrate' );
 	
 			if ($params->{"delete.$id"}) {
@@ -46,10 +50,11 @@ sub handler {
 
 			$cprefs->set('powerMaster', $params->{"powerMaster.$id"} ? 1 : 0);
 			$cprefs->set('powerPlay', $params->{"powerPlay.$id"} ? 1 : 0);
-			$cprefs->set('members', [ map {
-										/members.$id.(.+)/;
-										$1;
-									} grep /members.$id/, keys %$params ]);
+			
+			# keep previous members that are not connected ($previous is empty when showing disconnected)								
+			my $members = [ map { /members.$id.(.+)/; $1; } grep /members.$id/, keys %$params ];
+			push @$members, grep { !Slim::Player::Client::getClient($_) } @$previous;
+			$cprefs->set('members', $members);
 									
 			Plugins::Groups::Plugin::initVolume($id);
 		}

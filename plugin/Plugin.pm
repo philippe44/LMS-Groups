@@ -297,14 +297,12 @@ sub initVolume {
 	
 	foreach my $id (@$members) {
 		my $member = Slim::Player::Client::getClient($id);
-		# if member is not connected, just use the last known volume but don't ignore it
-		next unless $member;
 		
-		# do no take into account 100% fixed volume
-		if ($sprefs->client($member)->get('digitalVolumeControl')) {
-			# initialize member's volume if possible & needed	
+		# initialize member's volume if possible & needed, ignore fixed volume
+		if (!defined $member || $sprefs->client($member)->get('digitalVolumeControl')) {
 			$count++;
-			$volumes->{$id} = $member->volume if !defined $volumes->{$id};
+	   		# if member is not connected, just use the last known volume
+			$volumes->{$id} = (defined $member ? $member->volume : 50) if !defined $volumes->{$id};
 			$masterVolume += $volumes->{$id};
 		} else { 
 			$volumes->{$id} = -1; 

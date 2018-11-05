@@ -1,3 +1,8 @@
+0.7.4
+ - backporting errors for existing syncgroup handling and using master's preferences
+ - master's volume always using all member
+ - settings do not remove disconnected players from member list
+
 0.7.3
  - when playing from Group to Group, players that were member of both were restored as static groups
 

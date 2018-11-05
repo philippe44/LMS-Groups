@@ -77,54 +77,58 @@ sub new {
 
 sub playerTrackStarted {
 	my ($self, $client) = @_;
-	return $self->SUPER::playerTrackStarted($client) unless $self->master->isa("Plugins::Groups::Player");
+		
+	if ($self->master->isa("Plugins::Groups::Player")) {
+		my $surrogate = _Surrogate($self);
+		main::INFOLOG && $log->is_info && $log->info("track started $client");
 	
-	my $surrogate = _Surrogate($self);
-	main::INFOLOG && $log->is_info && $log->info("track started $client");
-	
-	# send started on behalf of master
-	$self->SUPER::playerTrackStarted($client->master) if $client == $surrogate;
+		# send started on behalf of master
+		$self->SUPER::playerTrackStarted($client->master) if $client == $surrogate;
+	}	
 	
 	return $self->SUPER::playerTrackStarted($client);
 }
 
 sub playerStatusHeartbeat {
 	my ($self, $client) = @_;
-	return $self->SUPER::playerStatusHeartbeat($client) unless $self->master->isa("Plugins::Groups::Player");
+		
+	if ($self->master->isa("Plugins::Groups::Player")) {
+		my $surrogate = _Surrogate($self);
+		main::DEBUGLOG && $log->is_debug && $log->debug("status heartbeat $client");
 	
-	my $surrogate = _Surrogate($self);
-	main::DEBUGLOG && $log->is_debug && $log->debug("status heartbeat $client");
-	
-	# send heartbeat on behalf of master
-	$self->SUPER::playerStatusHeartbeat($client->master) if $client == $surrogate && $self->master->isa("Plugins::Groups::Player");
+		# send heartbeat on behalf of master
+		$self->SUPER::playerStatusHeartbeat($client->master) if $client == $surrogate;
+	}
 	
 	return $self->SUPER::playerStatusHeartbeat($client);
 }
 
 sub playerStopped {
 	my ($self, $client) = @_;
-	return $self->SUPER::playerStopped($client) unless $self->master->isa("Plugins::Groups::Player");
+		
+	if ($self->master->isa("Plugins::Groups::Player")) {
+		my $surrogate = _Surrogate($self);
+		main::INFOLOG && $log->is_info && $log->info("track ended $client");
 	
-	my $surrogate = _Surrogate($self);
-	main::INFOLOG && $log->is_info && $log->info("track ended $client");
-	
-	# send stop on behalf of master
-	if ($client == $surrogate && $self->master->isa("Plugins::Groups::Player")) {
-		$self->SUPER::playerStopped($client->master);
-		$self->undoGroup(TRACK_END);		
-	}
+		# send stop on behalf of master
+		if ($client == $surrogate) {
+			$self->SUPER::playerStopped($client->master);
+			$self->undoGroup(TRACK_END);		
+		}
+	}	
 	
 	$self->SUPER::playerStopped($client);
 }
 
 sub play {
 	my $self = shift;
-	return $self->SUPER::play(@_) unless $self->master->isa("Plugins::Groups::Player");
-	
-	main::INFOLOG && $log->is_info && $log->info("play request $self");
+		
+	if ($self->master->isa("Plugins::Groups::Player")) {
+		main::INFOLOG && $log->is_info && $log->info("play request $self");
 
-	# be careful if we have been synced manually with a normal player
-	$self->doGroup if $self->master->isa("Plugins::Groups::Player");
+		# be careful if we have been synced manually with a normal player
+		$self->doGroup;
+	}
 	
 	return $self->SUPER::play(@_);
 }	
@@ -132,36 +136,38 @@ sub play {
 sub stop {
 	my $self = shift;
 	my $client = shift;
-	return $self->SUPER::stop(@_) unless $self->master->isa("Plugins::Groups::Player");
-	
-	main::INFOLOG && $log->is_info && $log->info("stop request $self $client");
-	
-	# when a member stops on its own, do not stop the whole group, instead 
-	# just unsync the member to let the group continue, unless the member is
-	# the only player in that group
-	if (defined $client && $client != $self->master && $self->activePlayers() > 2) {
-		main::INFOLOG && $log->is_info && $log->info("A member $client stopped on its own from ", $self->master);
 		
-		# unsync (do not keep syncid) and rejoin previously established groups
-		$self->SUPER::unsync($client);
-		_detach($client, 1);
+	if ($self->master->isa("Plugins::Groups::Player")) {
+		main::INFOLOG && $log->is_info && $log->info("stop request $self $client");
+	
+		# when a member stops on its own, do not stop the whole group, instead 
+		# just unsync the member to let the group continue, unless the member is
+		# the only player in that group
+		if (defined $client && $client != $self->master && $self->activePlayers() > 2) {
+			main::INFOLOG && $log->is_info && $log->info("A member $client stopped on its own from ", $self->master);
 		
-		return undef;
-	} 
+			# unsync (do not keep syncid) and rejoin previously established groups
+			$self->SUPER::unsync($client);
+			_detach($client, 1);
+		
+			return undef;
+		} 
 	
-	# the master stopped, so undo the group and stops everything
-	$self->undoGroup(USER_STOP);
-	
+		# the master stopped, so undo the group and stops everything
+		$self->undoGroup(USER_STOP);
+	}
+	 
 	return $self->SUPER::stop(@_)
 }	
 
 sub resume {
 	my $self = shift;
-	return $self->SUPER::resume(@_) unless $self->master->isa("Plugins::Groups::Player");
 	
-	main::INFOLOG && $log->is_info && $log->info("resume request $self");
+	if ($self->master->isa("Plugins::Groups::Player")) {
+		main::INFOLOG && $log->is_info && $log->info("resume request $self");
+		$self->doGroup(1);
+	}
 	
-	$self->doGroup(1) if $self->master->isa("Plugins::Groups::Player");
 	return $self->SUPER::resume(@_);
 }	
 
@@ -169,17 +175,20 @@ sub pause {
 	my $self = shift;
 	my $client = shift;
 	return $self->SUPER::pause(@_) unless $self->master->isa("Plugins::Groups::Player");
-	
-	main::INFOLOG && $log->is_info && $log->info("pause request $self from $client with master ", $self->master);
 
-	# do not break up group solely when it's a "standalone" pause
-	if ((!defined $client || $client == $self->master) && $self->master->isa("Plugins::Groups::Player")) {	
-		main::INFOLOG && $log->is_info && $log->info("master pause ", $self->master, " or no client $client");
-		$self->undoGroup(USER_PAUSE);		
-	} else {
-		main::INFOLOG && $log->is_info && $log->info("member $client paused on its own for ", $self->master);
-		# group will remain assembled for 30 mins
-		Slim::Utils::Timers::setTimer($self, time() + $prefs->get('breakupTimeout')*60, \&undoGroup) if $prefs->get('breakupTimeout');
+
+	if ($self->master->isa("Plugins::Groups::Player")) {	
+		main::INFOLOG && $log->is_info && $log->info("pause request $self from $client with master ", $self->master);
+
+		# do not break up group solely when it's a "standalone" pause
+		if ((!defined $client || $client == $self->master)) {	
+			main::INFOLOG && $log->is_info && $log->info("master pause ", $self->master, " or no client $client");
+			$self->undoGroup(USER_PAUSE);		
+		} else {
+			main::INFOLOG && $log->is_info && $log->info("member $client paused on its own for ", $self->master);
+			# group will remain assembled for 30 mins
+			Slim::Utils::Timers::setTimer($self, time() + $prefs->get('breakupTimeout')*60, \&undoGroup) if $prefs->get('breakupTimeout');
+		}	
 	}	
 	
 	return $self->SUPER::pause(@_);
