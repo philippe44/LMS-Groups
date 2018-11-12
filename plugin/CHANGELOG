@@ -1,3 +1,6 @@
+0.7.5
+ - Add (really) replaygain to virtual player
+ 
 0.7.4
  - backporting errors for existing syncgroup handling and using master's preferences
  - master's volume always using all member

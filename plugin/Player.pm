@@ -27,7 +27,8 @@ sub maxTreble { 50 }
 sub minTreble { 50 }
 sub maxBass { 50 }
 sub minBass { 50 }
-sub maxTransitionDuration { 10 };
+sub maxTransitionDuration { 10 }
+sub canDoReplayGain { 65536 }
 
 sub opened { return undef }
 sub bufferFullness { 100000 }
