@@ -4,14 +4,14 @@
     <title lang="EN">Philippe's Group Players plugin - development</title>
   </details>
   <plugins>
-    <plugin minTarget="7.7" name="Groups" maxTarget="7.*" version="0.7.5">
-      <link>http://github.com/philippe44/LMS-Groups</link>
-      <title lang="EN">Group Players</title>
+    <plugin version="0.7.5" name="Groups" minTarget="7.7" maxTarget="7.*">
       <desc lang="EN">on-the-fly group creation</desc>
-      <sha>4d1d8c9968c34fb07cedbe2edc2e09e8b0226e60</sha>
-      <email>philippe_44@outlook.com</email>
-      <url>http://downloads.sourceforge.net/project/lms-groups/dev/Groups-0.7.5.zip</url>
+      <title lang="EN">Group Players</title>
       <creator>Philippe</creator>
+      <link>http://github.com/philippe44/LMS-Groups</link>
+      <email>philippe_44@outlook.com</email>
+      <sha>b4dee1b1fd55012ab8a96b0883170d5fab433140</sha>
+      <url>http://downloads.sourceforge.net/project/lms-groups/dev/Groups-0.7.5.zip</url>
     </plugin>
   </plugins>
 </extensions>

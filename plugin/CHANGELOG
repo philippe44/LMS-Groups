@@ -1,13 +1,12 @@
 0.7.5
- - Add (really) replaygain to virtual player
+ - replaygain was not available for virtualplayer
  
 0.7.4
- - backporting errors for existing syncgroup handling and using master's preferences
- - master's volume always using all member
- - settings do not remove disconnected players from member list
-
+ - cleanup StreamingController code to have only one call to SUPER
+ 
 0.7.3
  - when playing from Group to Group, players that were member of both were restored as static groups
+ - original playlist & preferences were lost when switching between groups
 
 0.7.2
  - in initVolume, don't access clients's prefs if it's not connected
