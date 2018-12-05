@@ -375,6 +375,10 @@ sub initCLI {
 	);
 
 	Slim::Control::Request::addDispatch(['playergroup'],        [1, 1, 0, \&_cliGroup]);
+
+	Slim::Control::Request::addDispatch(['playergroups', '_cmd'],
+	                                                            [0, 0, 1, \&_cliCommand]
+	);
 }
 
 sub _cliGroups {
@@ -448,6 +452,97 @@ sub _cliGroup {
 	}
 
 	$request->setStatusDone();
+}
+
+sub _cliCommand {
+	my $request = shift;
+
+	# check this is the correct query.
+	if ($request->isNotCommand([['playergroups']])) {
+		$request->setStatusBadDispatch();
+		return;
+	}
+
+	my $cmd = $request->getParam('_cmd');
+
+	# command needs to be one of 4 different things
+	if ($request->paramUndefinedOrNotOneOf($cmd, ['add', 'delete', 'update', 'can-manage']) ) {
+		$request->setStatusBadParams();
+		return;
+	}
+
+	if ($cmd eq 'can-manage') {
+		$request->addResult('can-manage', 1);
+		$request->setStatusDone();
+		return;
+	}
+
+	my $id = $request->getParam('id');
+	my $name = $request->getParam('name');
+	my $powerMaster = $request->getParam('powerMaster');
+	my $powerPlay = $request->getParam('powerPlay');
+	my $members = $request->getParam('members');
+
+	if ($cmd eq 'add') {
+		if ($id || !$name) {
+			$request->setStatusBadParams();
+			return;
+		}
+
+		$id = Plugins::Groups::Settings::createId();
+
+		main::INFOLOG && $log->is_info && $log->info("Adding $name $id");
+		Plugins::Groups::Plugin::createPlayer($id, $name);
+		my $cprefs = Slim::Utils::Prefs::Client->new($prefs, $id, 'no-migrate' );
+		$cprefs->set('powerMaster', $powerMaster ? 1 : 0);
+		$cprefs->set('powerPlay', $powerPlay ? 1 : 0);
+
+		if ($members) {
+			my @memberList = split /,/, $members;
+			$cprefs->set('members', \@memberList);
+		}
+
+		$request->addResult('id', $id);
+		$request->setStatusDone();
+		return;
+	}
+
+	if ($cmd eq 'delete') {
+		if (!$id) {
+			$request->setStatusBadParams();
+			return;
+		}
+		main::INFOLOG && $log->is_info && $log->info("Deleting $id");
+		$prefs->remove($Slim::Utils::Prefs::Client::clientPreferenceTag . ':' . $id);
+		delPlayer($id);
+		$request->setStatusDone();
+		return;
+	}
+
+	if ($cmd eq 'update') {
+		if (!$id || $name) {
+			$request->setStatusBadParams();
+			return;
+		}
+		main::INFOLOG && $log->is_info && $log->info("Updating $id");
+		my $cprefs = Slim::Utils::Prefs::Client->new($prefs, $id, 'no-migrate');
+		if ($powerMaster == 0 || $powerMaster == 1) {
+			$cprefs->set('powerMaster', $powerMaster ? 1 : 0);
+		}
+		if ($powerPlay == 0 || $powerPlay == 1) {
+			$cprefs->set('powerPlay', $powerPlay ? 1 : 0);
+		}
+		if ($members) {
+			if ($members eq '-') {
+				my @memberList = [];
+				$cprefs->set('members', \@memberList);
+			} else {
+				my @memberList = split /,/, $members;
+				$cprefs->set('members', \@memberList);
+			}
+		}
+		$request->setStatusDone();
+	}
 }
 
 sub allPrefs {
