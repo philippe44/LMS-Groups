@@ -1,3 +1,6 @@
+0.7.6
+ - add CLI interface to manipulate groups
+ 
 0.7.5
  - replaygain was not available for virtualplayer
  
