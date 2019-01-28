@@ -32,6 +32,9 @@
 			&nbsp&nbsp
 			<input type="checkbox" name="powerPlay.[% gid %]" id="powerPlay.[% gid %]" [% IF group.powerPlay %] checked [% END %] value="1" class="stdedit"/>
 			<label for="powerPlay.[% gid %]">[% "PLUGIN_GROUPS_OPTIONSPOWERPLAY" | string %]</label>
+			&nbsp&nbsp
+			<input type="checkbox" name="greedy.[% gid %]" id="greedy.[% gid %]" [% IF group.greedy %] checked [% END %] value="1" class="stdedit"/>
+			<label for="greedy.[% gid %]">[% "PLUGIN_GROUPS_OPTIONSGREEDY" | string %]</label>
 		[% END %]
 				
 		[% WRAPPER setting title="PLUGIN_GROUPS_MEMBERS" desc="" %]

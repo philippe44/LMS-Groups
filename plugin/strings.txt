@@ -5,8 +5,8 @@ PLUGIN_GROUPS_NAME
 	
 PLUGIN_GROUPS_DESC
 	DE	Gruppe erstellen
-	EN	Create Group Player
-	FR	Création de Lecteur Groupé
+	EN	Create additional virtual players that represent dynamic sync groups. Each group is automatically assembled/disassembled at play/stop
+	FR	Création de lecteur virtuels representant des groupes de synchronization dynamiques. Chaque groupe est crée/détruit automatiquement à la lecture/arrêt
 	
 PLUGIN_GROUPS_MEMBERS
 	DE	Mitglieder
@@ -70,8 +70,8 @@ PLUGIN_GROUPS_OPTIONS
 	
 PLUGIN_GROUPS_OPTIONS_DESC
 	DE	Steuert, wie Änderungen an der Gruppe die Player beeinflusst: <br> - Player miteinander ein/ausschalten 
-	EN	Sets how changes on Group Player affects members <br> - Power on/off members alltogether <br> - Power members when playing
-	FR	Définit la façon dont un changement sur un Lecteur Groupé affecte les membres <br> - Allume/Eteint tous les membres <br> Allume les membres à la lecture
+	EN	Sets how changes on Group Player affects members <br> - Power on/off members alltogether <br> - Power members when playing <br> - Force members synchronization
+	FR	Définit la façon dont un changement sur un Lecteur Groupé affecte les membres <br> - Allume/Eteint tous les membres <br> - Allume les membres à la lecture <br> - Force la synchronization
 
 PLUGIN_GROUPS_OPTIONSPOWER
 	DE	Ein/Ausschalten
@@ -82,6 +82,11 @@ PLUGIN_GROUPS_OPTIONSPOWERPLAY
 	DE	Alle Geräte beim Start einschalten
 	EN	Power all on play
 	FR	Allume tous à la lecture
+	
+PLUGIN_GROUPS_OPTIONSGREEDY
+	DE	Always synchronize all members
+	EN	Always synchronize all members
+	FR	Synchronize toujours tous les membres
 	
 PLUGIN_GROUPS_OPTIONSVOLUME
 	DE	Lautstärke

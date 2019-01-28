@@ -141,16 +141,16 @@ sub stop {
 		main::INFOLOG && $log->is_info && $log->info("stop request $self $client");
 	
 		# when a member stops on its own, do not stop the whole group, instead 
-		# just unsync the member to let the group continue, unless the member is
-		# the only player in that group
-		if (defined $client && $client != $self->master && $self->activePlayers() > 2) {
+		# just unsync the member to let the group continue
+		if (defined $client && $client != $self->master) {
 			main::INFOLOG && $log->is_info && $log->info("A member $client stopped on its own from ", $self->master);
 		
 			# unsync (do not keep syncid) and rejoin previously established groups
 			$self->SUPER::unsync($client);
 			_detach($client, 1);
 		
-			return undef;
+			# let the group continue if it has more members
+			return undef if $self->activePlayers() > 1;
 		} 
 	
 		# the master stopped, so undo the group and stops everything
@@ -246,13 +246,14 @@ sub doGroup {
 	my $master = $self->master;
 	my $members = $prefs->client($master)->get('members') || return;
 	my $volumes = $prefs->client($master)->get('volumes');
+	my $greedy = $prefs->client($master)->get('greedy');
 	
 	# prevent volume calculation when setting back group values for members
 	$master->_volumeDispatching(1);			
 	
 	foreach (@$members) {
 		my $member = Slim::Player::Client::getClient($_);
-		next unless $member && $member->controller != $self  && (!$member->pluginData('marker') || !$member->controller->isPlaying);
+		next unless $member && $member->controller != $self  && (!$member->pluginData('marker') || !$member->controller->isPlaying || $greedy);
 				
 		# un-mark client now that it has re-joined the group		
 		$member->pluginData(marker => 0);		
