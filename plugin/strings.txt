@@ -4,7 +4,7 @@ PLUGIN_GROUPS_NAME
 	FR	Lecteurs Groupés
 	
 PLUGIN_GROUPS_DESC
-	DE	Gruppe erstellen
+	DE	Erstelle Virtuelle Player, die synchronisierte Gruppen repräsentieren. Jede Gruppe wird bei Wiedergabe-Start oder -Stop zusammengestellt.
 	EN	Create additional virtual players that represent dynamic sync groups. Each group is automatically assembled/disassembled at play/stop
 	FR	Création de lecteur virtuels representant des groupes de synchronization dynamiques. Chaque groupe est crée/détruit automatiquement à la lecture/arrêt
 	
@@ -59,7 +59,7 @@ PLUGIN_GROUPS_DELETEGROUP
 	FR	Supprimer
 	
 PLUGIN_GROUPS_DELETEGROUP_DESC
-	DE	Kreuze diese Checkbox an um die Gruppe definitiv zu löschen.
+	DE	Kreuze diese Checkbox an, um die Gruppe definitiv zu löschen.
 	EN	Check this box and press Apply to permanently delete this Group Player
 	FR	Cliquez ici puis sur Appliquer pour détruire le Lecteur Groupé
 	
@@ -69,12 +69,12 @@ PLUGIN_GROUPS_OPTIONS
 	FR	Options
 	
 PLUGIN_GROUPS_OPTIONS_DESC
-	DE	Steuert, wie Änderungen an der Gruppe die Player beeinflusst: <br> - Player miteinander ein/ausschalten <br> - Erzwinge die Synchronisation des Players
+	DE	Steuert, wie Änderungen an der Gruppe die Player beeinflusst: <br> - Player miteinander ein/ausschalten <br> - Erzwinge die Synchronisation der Player
 	EN	Sets how changes on Group Player affects members <br> - Power on/off members alltogether <br> - Power members when playing <br> - Force members synchronization
 	FR	Définit la façon dont un changement sur un Lecteur Groupé affecte les membres <br> - Allume/Eteint tous les membres <br> - Allume les membres à la lecture <br> - Force la synchronization
 
 PLUGIN_GROUPS_OPTIONSPOWER
-	DE	Ein/Ausschalten
+	DE	Schalte alle Geräte mit dem Gruppen-Player ein/aus
 	EN	Power on/off all with Group Player
 	FR	Allume/Eteint tout avec le Lecteur Groupé
 	
@@ -84,7 +84,7 @@ PLUGIN_GROUPS_OPTIONSPOWERPLAY
 	FR	Allume tous à la lecture
 	
 PLUGIN_GROUPS_OPTIONSGREEDY
-	DE	Synchronisieren Sie immer alle Players
+	DE	Immer alle Geräte synchronisieren
 	EN	Always synchronize all members
 	FR	Synchronize toujours tous les membres
 	
@@ -99,17 +99,17 @@ PLUGIN_GROUPS_SYNCOPTIONS
 	FR	Options de synchronization
 
 PLUGIN_GROUPS_SYNCOPTIONS_DESC
-	DE	<i>- Gruppen beim Ausschalten...: </i>Wenn eine Geräte Gruppe gestoppt wird, können die enthaltenen Player wieder der zuvor zugehörigen Synchronisations-Gruppe zugewiesen werden. Die Wiedergabe wird mit dem nächsten Titel wieder hergestellt.<br><i>- (to be completed): </i>(to be completed)
-	EN	<i>- Restore sync group: </i>When a Group Player stops, members that belonged to a LMS sync group can be re-associated to it. They will resume playing at next track<br><i>- Player can ge synchronized...: </i> A real player can be manually synchronized to a Group Player (its volume remains independant)
+	DE	<i>- Gruppen beim Ausschalten...: </i>Wenn eine Geräte Gruppe gestoppt wird, können die enthaltenen Player wieder der zuvor zugehörigen Synchronisations-Gruppe zugewiesen werden. Die Wiedergabe wird mit dem nächsten Titel wieder hergestellt.<br><i>- Geräte können synchronisiert werden...: </i>Ein echtes Gerät kann manuell mit einem Gruppen-Player synchronisiert werden (Lautstärke bleibt unabhängig)
+	EN	<i>- Restore sync group: </i>When a Group Player stops, members that belonged to a LMS sync group can be re-associated to it. They will resume playing at next track<br><i>- Player can be synchronized...: </i> A real player can be manually synchronized to a Group Player (its volume remains independant)
 	FR	<i>- Rétablir les groupes...: </i>Lorsqu'un Lecteur Groupé s'arrête, les membres appartenant à un groupe de synchronisation peuvent lui être ré-affectés. Ils ne recommenceront à jouer qu'à la piste suivante<br><i>- Un Lecteur peut être...: </i>Un lecteur peut être ajouté manuellement à un Lecteur Groupé (son volume reste indépendant)
 	
 PLUGIN_GROUPS_RESTORESTATIC
-	DE	Gruppen beim Ausschalten wieder herstellen
+	DE	Gruppen wieder herstellen
 	EN	Restore sync groups 
 	FR	Rétablir les groupes de synchronisation
 	
 PLUGIN_GROUPS_SYNCREAL
-	DE	Mit Gruppens Players synchronisieren
+	DE	Mit Geräte-Gruppe synchronisieren
 	EN	Synchronize to Group Players
 	FR	Synchronise avec les Lecteurs Groupés
 	
