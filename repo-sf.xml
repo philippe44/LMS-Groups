@@ -1,17 +1,17 @@
 <?xml version='1.0' standalone='yes'?>
 <extensions>
-  <details>
-    <title lang="EN">Philippe's Group Players plugin - development</title>
-  </details>
   <plugins>
-    <plugin minTarget="7.7" maxTarget="7.*" version="0.8.0" name="Groups">
-      <creator>Philippe</creator>
-      <sha>76096bdd3c8dcecd4bfc1be7d3f1b3b29aa3fbeb</sha>
+    <plugin maxTarget="7.*" version="0.8.1" minTarget="7.7" name="Groups">
       <email>philippe_44@outlook.com</email>
-      <url>http://downloads.sourceforge.net/project/lms-groups/dev/Groups-0.8.0.zip</url>
       <link>http://github.com/philippe44/LMS-Groups</link>
+      <sha>913eaecf08f0617a65cdc7e63f417f3ac83ae853</sha>
       <desc lang="EN">on-the-fly group creation</desc>
+      <creator>Philippe</creator>
+      <url>http://downloads.sourceforge.net/project/lms-groups/dev/Groups-0.8.1.zip</url>
       <title lang="EN">Group Players</title>
     </plugin>
   </plugins>
+  <details>
+    <title lang="EN">Philippe's Group Players plugin - development</title>
+  </details>
 </extensions>

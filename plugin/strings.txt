@@ -69,7 +69,7 @@ PLUGIN_GROUPS_OPTIONS
 	FR	Options
 	
 PLUGIN_GROUPS_OPTIONS_DESC
-	DE	Steuert, wie Änderungen an der Gruppe die Player beeinflusst: <br> - Player miteinander ein/ausschalten 
+	DE	Steuert, wie Änderungen an der Gruppe die Player beeinflusst: <br> - Player miteinander ein/ausschalten <br> - Erzwinge die Synchronisation des Players
 	EN	Sets how changes on Group Player affects members <br> - Power on/off members alltogether <br> - Power members when playing <br> - Force members synchronization
 	FR	Définit la façon dont un changement sur un Lecteur Groupé affecte les membres <br> - Allume/Eteint tous les membres <br> - Allume les membres à la lecture <br> - Force la synchronization
 
@@ -84,7 +84,7 @@ PLUGIN_GROUPS_OPTIONSPOWERPLAY
 	FR	Allume tous à la lecture
 	
 PLUGIN_GROUPS_OPTIONSGREEDY
-	DE	Always synchronize all members
+	DE	Synchronisieren Sie immer alle Players
 	EN	Always synchronize all members
 	FR	Synchronize toujours tous les membres
 	
@@ -109,7 +109,7 @@ PLUGIN_GROUPS_RESTORESTATIC
 	FR	Rétablir les groupes de synchronisation
 	
 PLUGIN_GROUPS_SYNCREAL
-	DE	(to be completed)
+	DE	Mit Gruppens Players synchronisieren
 	EN	Synchronize to Group Players
 	FR	Synchronise avec les Lecteurs Groupés
 	
