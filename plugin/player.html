@@ -1,0 +1,22 @@
+[% PROCESS settings/header.html %]
+
+	[% USE Clients %]
+	
+	[% WRAPPER setting title="PLUGIN_GROUPS_MEMBERSHIPS" desc="" %]
+	
+		<table style="border-spacing:0">	
+		[% FOREACH group IN groups %]
+			[% gid = group.clientid %]
+		
+			[% IF loop.index() % 4 == 0 %]<tr>[% END %]
+			<td style="padding: 0 10px 2px 0">
+			<input type="checkbox" name="member.[% gid %]" id="member.[% gid %]" [% IF group.members.grep(playerid).size() %] checked [% END %] value="1" />
+			<label for="member.[% gid %]">[% Clients.client(gid).name %]</label>
+			</td>
+			[% IF (loop.index + 1) % 4 == 0 %]</tr>[% END %]
+		
+		[% END %]
+		</table>
+	[% END %]
+
+[% PROCESS settings/footer.html %]

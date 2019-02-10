@@ -51,7 +51,7 @@ sub handler {
 			$cprefs->set('powerMaster', $params->{"powerMaster.$id"} ? 1 : 0);
 			$cprefs->set('powerPlay', $params->{"powerPlay.$id"} ? 1 : 0);
 			$cprefs->set('greedy', $params->{"greedy.$id"} ? 1 : 0);
-			
+						
 			# keep previous members that are not connected ($previous is empty when showing disconnected)								
 			my $members = [ map { /members.$id.(.+)/; $1; } grep /members.$id/, keys %$params ];
 			push @$members, grep { !Slim::Player::Client::getClient($_) } @$previous;

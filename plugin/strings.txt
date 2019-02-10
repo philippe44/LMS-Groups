@@ -113,4 +113,13 @@ PLUGIN_GROUPS_SYNCREAL
 	EN	Synchronize to Group Players
 	FR	Synchronise avec les Lecteurs Groupés
 	
+PLUGIN_GROUPS_PLAYERSETTINGS
+	DE	Gruppenoptionen
+	EN	Groups settings 
+	FR	Options de Groupe
+	
+PLUGIN_GROUPS_MEMBERSHIPS
+	DE	#german# Group memberships
+	EN	Group memberships
+	FR	Membre des groupes
 
