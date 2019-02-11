@@ -119,7 +119,23 @@ PLUGIN_GROUPS_PLAYERSETTINGS
 	FR	Options de Groupe
 	
 PLUGIN_GROUPS_MEMBERSHIPS
-	DE	#german# Group memberships
+	DE	#german#
 	EN	Group memberships
 	FR	Membre des groupes
+	
+PLUGIN_GROUPS_MEMBERSHIPS_DESC
+	DE	#german#
+	EN	Select groups whose player is member of
+	FR	Sélectionne les groupes dont le lecteur est membre
+	
+PLUGIN_GROUPS_OUPUT_CHANNELS_DESC
+	DE	#german#
+	EN	Set channels for this player when it is an active member of a Group
+	FR	Configure les canaux pour ce lecteur lorsqu'il est membre actif d'un groupe
+	
+PLUGIN_GROUPS_PLAYERDEFAULTS
+	DE	(#german#)
+	EN	(unmodified)
+	FR	(inchangé)
+	
 

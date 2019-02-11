@@ -89,7 +89,7 @@ sub initPlugin {
 
 	$class->initCLI();
 		
-	foreach my $id ( $class->groupIDs() ) {
+	foreach my $id ( $class->groupIDs(1) ) {
 		main::INFOLOG && $log->is_info && $log->info("Creating player group $id");
 		createPlayer($id);
 	}
@@ -550,11 +550,17 @@ sub _cliCommand {
 }
 
 sub allPrefs {
-	return map { {clientid => $_->{clientid}, %{$_->all}} } $prefs->allClients;
+	my @group = map { {clientid => $_->{clientid}, %{$_->all}} } $prefs->allClients;
+	return sort { lc($sprefs->client(Slim::Player::Client::getClient($a->{clientid}))->get('playername')) cmp
+			      lc($sprefs->client(Slim::Player::Client::getClient($b->{clientid}))->get('playername')) } @group;
 }
 		
 sub groupIDs {
-	return map { $_->{clientid} } $prefs->allClients;
+	my ($class, $noSort) = @_;
+	my @group = map { $_->{clientid} } $prefs->allClients;
+	return @group if $noSort;
+	return sort { lc($sprefs->client(Slim::Player::Client::getClient($a))->get('playername')) cmp
+			      lc($sprefs->client(Slim::Player::Client::getClient($b))->get('playername')) } @group;	
 }
 
 

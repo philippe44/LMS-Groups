@@ -1,22 +1,73 @@
 [% PROCESS settings/header.html %]
 
+	[%- playerid = playerid || player -%]
+
 	[% USE Clients %]
 	
-	[% WRAPPER setting title="PLUGIN_GROUPS_MEMBERSHIPS" desc="" %]
+	[% WRAPPER setting title="PLUGIN_GROUPS_MEMBERSHIPS" desc="PLUGIN_GROUPS_MEMBERSHIPS_DESC" %]
 	
 		<table style="border-spacing:0">	
 		[% FOREACH group IN groups %]
-			[% gid = group.clientid %]
-		
 			[% IF loop.index() % 4 == 0 %]<tr>[% END %]
 			<td style="padding: 0 10px 2px 0">
-			<input type="checkbox" name="member.[% gid %]" id="member.[% gid %]" [% IF group.members.grep(playerid).size() %] checked [% END %] value="1" />
-			<label for="member.[% gid %]">[% Clients.client(gid).name %]</label>
+			<input type="checkbox" name="member.[% group.gid %]" id="member.[% group.gid %]" [% IF group.member %] checked [% END %] value="1" />
+			<label for="member.[% gid %]">[% Clients.client(group.gid).name %]</label>
 			</td>
 			[% IF (loop.index + 1) % 4 == 0 %]</tr>[% END %]
-		
 		[% END %]
 		</table>
 	[% END %]
+	
+	<!-- item.style.visibility = 'hidden'; just hide, no page re-arrange-->
+	
+	[% WRAPPER setting title="SETUP_OUTPUT_CHANNELS" desc="PLUGIN_GROUPS_OUPUT_CHANNELS_DESC" %]
+	
+		<script type="text/javascript">
+		function outputchannelschange(input, data) {
+			var gid = input.options[input.selectedIndex].value;
+			var item;
 
+			[% FOREACH group IN groups %]
+				item = document.getElementById("outputChannels.[% group.gid %]");
+				if (gid == "[% group.gid %]") {
+					item.style.display = 'inline';
+				} else {
+					item.style.display = 'none';
+				}	
+			[% END %]
+		}
+		</script>
+		
+		[% outputChannelsOptions = {
+				'n/a' => 'PLUGIN_GROUPS_PLAYERDEFAULTS',
+				'0' => 'OUTPUT_CHANNELS_NORMAL',
+				'1' => 'OUTPUT_CHANNELS_LEFT',
+				'2' => 'OUTPUT_CHANNELS_RIGHT',
+				} 
+		%]
+		
+		<select class="stdedit" id="outputChannelsGroup" name="outputChannelsGroup" onchange="outputchannelschange(this)">
+		[% FOREACH group IN groups %]
+			<option [% IF !group.member %]disabled[% ELSIF outputChannelsGroup == group.gid %]selected[% END %] value="[% group.gid %]">[% Clients.client(group.gid).name %]</option>
+			[% IF group.member %]
+				[% IF !outputChannelsGroup %][% outputChannelsGroup = group.gid %][% END %]
+			[% ELSIF outputChannelsGroup == group.gid %][% outputChannelsGroup = '' %]
+			[% END %]	
+		[% END %]
+		</select>
+		
+		[% IF outputChannelsGroup %]
+			[% FOREACH group IN groups %]
+				<!-- undef variable equals to 0 -->
+				<select class="stdedit" [% IF group.gid != outputChannelsGroup %]hidden[% END %] name="outputChannels.[% group.gid %]" id="outputChannels.[% group.gid %]">
+				[% FOREACH option IN outputChannelsOptions %]
+					<option [% IF group.outputChannels == option.key %]selected[% END %] value="[% option.key %]">[% option.value | string %]</option>
+				[% END %]
+				</select>	
+			[% END %]
+		[% END %]	
+		
+	[% END %]
+	
+		
 [% PROCESS settings/footer.html %]

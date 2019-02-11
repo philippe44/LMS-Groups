@@ -55,6 +55,8 @@ my $defaultPrefs = {
 	'maxBitrate'		 => 0,
 };
 
+our @onGroupPrefs = qw(outputChannels);
+
 # override the accessor from Client.pm: always return an empty list
 sub chunks { [] }
 

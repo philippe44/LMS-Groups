@@ -274,7 +274,7 @@ sub doGroup {
 						repeat		=> $sprefs->client($member)->get('repeat'),
 					} );	
 
-			foreach my $key (keys %$Plugins::Groups::Player::groupPrefs) {
+			foreach my $key (keys %$Plugins::Groups::Player::groupPrefs, @Plugins::Groups::Player::onGroupPrefs) {
 				$member->pluginData($key => $sprefs->client($member)->get("$key"));
 			}
 		}	
@@ -282,6 +282,12 @@ sub doGroup {
 		# set all prefs that inherit from virtual player
 		foreach my $key (keys %$Plugins::Groups::Player::groupPrefs) {
 			$sprefs->client($member)->set("$key", $sprefs->client($master)->get("$key"));
+		}
+		
+		# then set player prefs that are specific to this group
+		foreach my $key (@Plugins::Groups::Player::onGroupPrefs) {
+			my $data = $prefs->client($master)->get("$key") || {};
+			$sprefs->client($member)->set("$key", $data->{$member->id}) if defined $data->{$member->id};
 		}		
 			
 		main::INFOLOG && $log->is_info && $log->info("sync ", $member->name, " to ", $master->name, " former syncgroup ", $member->pluginData('syncgroupid'));
@@ -359,7 +365,7 @@ sub _detach {
 	$client->pluginData(forcedPowerOff => 0);
 	
 	# restore overwritten prefs
-	foreach my $key (keys %$Plugins::Groups::Player::groupPrefs) {
+	foreach my $key (keys %$Plugins::Groups::Player::groupPrefs, @Plugins::Groups::Player::onGroupPrefs) {
 		$sprefs->client($client)->set("$key", $client->pluginData("$key"));
 	}
 				
