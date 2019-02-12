@@ -9,7 +9,7 @@
 			<label for="greedy.[% gid %]">[% "PLUGIN_GROUPS_OPTIONSGREEDY" | string %]</label>
 		[% END %]
 				
-		[% WRAPPER setting title="PLUGIN_GROUPS_MEMBERS" desc="" %]
+		[% WRAPPER setting title="PLUGIN_GROUPS_MEMBERS" desc="PLUGIN_GROUPS_MEMBERS_DESC" %]
 			<table style="border-spacing:0">
 			[% FOREACH player IN playerList %]
 				[% pid = player.id %]

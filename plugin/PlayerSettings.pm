@@ -7,9 +7,6 @@ use List::Util qw(first);
 use Slim::Utils::Log;
 use Slim::Utils::Prefs;
 
-# to be removed
-use Data::Dumper;
-
 my $sprefs = preferences('server');
 my $prefs = preferences('plugin.groups');
 my $log   = logger('plugin.groups');
@@ -86,6 +83,7 @@ sub handler {
 
 sub beforeRender {
 	my ($class, $params, $client) = @_;
+	return unless $client;
 
 	if ($client->isa("Plugins::Groups::Player")) {
 		Plugins::Groups::Settings::beforeRender($class, $params, $client);
@@ -110,7 +108,6 @@ sub beforeRender {
 			push @members, $data;	
 		}
 		
-		$log->error(Dumper(@members));
 		$params->{devices} = [ sort { lc($a->{name}) cmp lc($b->{name}) } @members ];
 	} else {
 		my @groups;
@@ -134,7 +131,6 @@ sub beforeRender {
 			push @groups, $data;	
 		}	
 	
-		$log->error(Dumper(@groups));
 		$params->{devices} = \@groups;
 	}	
 }

@@ -13,6 +13,11 @@ PLUGIN_GROUPS_MEMBERS
 	EN	Members
 	FR	Membres
 	
+PLUGIN_GROUPS_MEMBERS_DESC
+	DE	#german#
+	EN	Select which players are member of this group
+	FR	Sélectionne les lecteurs membres du groupe
+	
 PLUGIN_GROUPS_STARTING
 	DE	Starte Gruppen
 	EN	Starting Group Players
