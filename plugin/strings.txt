@@ -114,9 +114,9 @@ PLUGIN_GROUPS_SYNCREAL
 	FR	Synchronise avec les Lecteurs Groupés
 	
 PLUGIN_GROUPS_PLAYERSETTINGS
-	DE	Gruppenoptionen
-	EN	Groups settings 
-	FR	Options de Groupe
+	DE	Gruppen
+	EN	Groups
+	FR	Groupes
 	
 PLUGIN_GROUPS_MEMBERSHIPS
 	DE	#german#
@@ -125,10 +125,10 @@ PLUGIN_GROUPS_MEMBERSHIPS
 	
 PLUGIN_GROUPS_MEMBERSHIPS_DESC
 	DE	#german#
-	EN	Select groups whose player is member of
+	EN	Select which groups player is member of
 	FR	Sélectionne les groupes dont le lecteur est membre
 	
-PLUGIN_GROUPS_OUPUT_CHANNELS_DESC
+PLUGIN_GROUPS_OUPUTCHANNELS_DESC
 	DE	#german#
 	EN	Set channels for this player when it is an active member of a Group
 	FR	Configure les canaux pour ce lecteur lorsqu'il est membre actif d'un groupe
@@ -137,5 +137,7 @@ PLUGIN_GROUPS_PLAYERDEFAULTS
 	DE	(#german#)
 	EN	(unmodified)
 	FR	(inchangé)
+	
+
 	
 

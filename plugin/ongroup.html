@@ -1,0 +1,41 @@
+	[% WRAPPER setting title="SETUP_OUTPUT_CHANNELS" desc="PLUGIN_GROUPS_OUPUTCHANNELS_DESC" %]
+	
+		<script type="text/javascript">
+		function outputChannelsDeviceChange(input) {
+			var id = input.options[input.selectedIndex].value;
+			var item;
+
+			[% FOREACH device IN devices %]
+				item = document.getElementById("outputChannels.[% device.id %]");
+				if (id == "[% device.id %]") {
+					item.style.display = 'inline';
+				} else {
+					item.style.display = 'none';
+				}	
+			[% END %]
+		}
+		</script>
+		
+		<select class="stdedit" id="outputChannelsDevice" name="outputChannelsDevice" onchange="outputChannelsDeviceChange(this)">
+		[% FOREACH device IN devices %]
+			[% IF device.member %]			
+				<option [% IF outputChannelsDevice == device.id %]selected[% END %] value="[% device.id %]">[% device.name %]</option>
+				[% IF !outputChannelsDevice %][% outputChannelsDevice = device.id %][% END %]
+			[% ELSIF outputChannelsDevice == device.id %]
+				[% outputChannelsDevice = '' %]
+			[% END %]	
+		[% END %]
+		</select>
+
+		[% IF outputChannelsDevice %]
+			[% FOREACH device IN devices %]
+				<select class="stdedit" [% IF device.id != outputChannelsDevice %]hidden[% END %] name="outputChannels.[% device.id %]" id="outputChannels.[% device.id %]">
+				[% FOREACH option IN outputChannelsOptions %]
+					<option [% IF device.outputChannels == option.key %]selected[% END %] value="[% option.key %]">[% option.value | string %]</option>
+				[% END %]
+				</select>	
+			[% END %]
+		[% END %]	
+		
+	[% END %]
+	
