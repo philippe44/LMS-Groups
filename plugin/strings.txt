@@ -119,22 +119,22 @@ PLUGIN_GROUPS_PLAYERSETTINGS
 	FR	Groupes
 	
 PLUGIN_GROUPS_MEMBERSHIPS
-	DE	#german#
+	DE	Gruppen-Mitgliedschaft
 	EN	Group memberships
 	FR	Membre des groupes
 	
 PLUGIN_GROUPS_MEMBERSHIPS_DESC
-	DE	#german#
+	DE	Wähle die Gruppen, zu welchen das Gerät gehört
 	EN	Select which groups player is member of
 	FR	Sélectionne les groupes dont le lecteur est membre
 	
 PLUGIN_GROUPS_OUPUTCHANNELS_DESC
-	DE	#german#
+	DE	Wähle die Kanäle für dieses Gerät, wenn es Mitglied einer Gruppe ist
 	EN	Set channels for this player when it is an active member of a Group
 	FR	Configure les canaux pour ce lecteur lorsqu'il est membre actif d'un groupe
 	
 PLUGIN_GROUPS_PLAYERDEFAULTS
-	DE	(#german#)
+	DE	(Standard)
 	EN	(unmodified)
 	FR	(inchangé)
 	
