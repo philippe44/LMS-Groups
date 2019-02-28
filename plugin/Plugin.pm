@@ -98,6 +98,12 @@ sub initPlugin {
 	$originalSyncHandler = Slim::Control::Request::addDispatch(['sync', '_indexid-'], [1, 0, 1, \&syncCommand]);
 }
 
+sub shutdownPlugin {
+	foreach ( Plugins::Groups::Plugin->groupIDs(1) ) {
+		Slim::Player::Client::getClient($_)->controller()->undoGroup();
+	}
+}
+
 sub doTransfer {
 	my ($source, $dest) = @_;
 			
