@@ -269,12 +269,12 @@ sub doGroup {
 						shuffle  	=> $sprefs->client($member)->get('shuffle'),
 						repeat		=> $sprefs->client($member)->get('repeat'),
 					} );	
-		
+
 			foreach my $key (keys %$Plugins::Groups::Player::groupPrefs, @Plugins::Groups::Player::onGroupPrefs) {
 				$member->pluginData($key => $sprefs->client($member)->get("$key"));
 			}
 		}	
-
+		
 		# set all prefs that inherit from virtual player
 		foreach my $key (keys %$Plugins::Groups::Player::groupPrefs) {
 			$sprefs->client($member)->set("$key", $sprefs->client($master)->get("$key"));
