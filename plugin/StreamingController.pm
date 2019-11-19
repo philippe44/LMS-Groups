@@ -258,14 +258,10 @@ sub doGroup {
 		# un-mark client now that it has re-joined the group		
 		$member->pluginData(marker => 0);		
 	
-		# power on all members if needed, only on first play, not on resume
-		# unless it was forced off
-		Slim::Control::Request::executeRequest($member, ['power', 1, 1]) 
-			if $prefs->client($master)->get('powerPlay') && (!$resume || $member->pluginData('forcedPowerOff'));
-
-		# only memorize syncgroupid, playlist and prefs if we are not already part of a Group 
+		# only memorize syncgroupid, playlist, power and prefs if we are not already part of a Group 
 		if (!$member->controller->isa("Plugins::Groups::StreamingController")) {
 			$member->pluginData(syncgroupid => $sprefs->client($member)->get('syncgroupid') // -1);
+			$member->pluginData(power => $member->power);
 			$member->pluginData(playlist => {
 						playlist 	=> [ @{$member->playlist} ],
 						shufflelist => [ @{$member->shufflelist} ],
@@ -273,7 +269,7 @@ sub doGroup {
 						shuffle  	=> $sprefs->client($member)->get('shuffle'),
 						repeat		=> $sprefs->client($member)->get('repeat'),
 					} );	
-
+		
 			foreach my $key (keys %$Plugins::Groups::Player::groupPrefs, @Plugins::Groups::Player::onGroupPrefs) {
 				$member->pluginData($key => $sprefs->client($member)->get("$key"));
 			}
@@ -289,6 +285,11 @@ sub doGroup {
 			my $data = $prefs->client($master)->get("$key") || {};
 			$sprefs->client($member)->set("$key", $data->{$member->id}) if defined $data->{$member->id};
 		}		
+		
+		# power on all members if needed, only on first play, not on resume
+		# unless it was forced off
+		Slim::Control::Request::executeRequest($member, ['power', 1, 1]) 
+			if $prefs->client($master)->get('powerPlay') && (!$resume || $member->pluginData('forcedPowerOff'));
 			
 		main::INFOLOG && $log->is_info && $log->info("sync ", $member->name, " to ", $master->name, " former syncgroup ", $member->pluginData('syncgroupid'));
 				
@@ -341,6 +342,9 @@ sub undoGroup {
 
 			Slim::Control::Request::notifyFromArray($member, ['playlist', 'stop']);	
 			Slim::Control::Request::notifyFromArray($member, ['playlist', 'sync']);
+			
+			# restore power state
+			Slim::Control::Request::executeRequest($member, ['power', $member->pluginData('power'), 1]) 
 		}
 	}
 }

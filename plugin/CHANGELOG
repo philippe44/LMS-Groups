@@ -1,3 +1,6 @@
+0.10.0
+ - restore individual players' initial power state when group is broken up
+
 0.9.1
  - shutdown plugin undo groups to avoid creation of static sync groups 
  
