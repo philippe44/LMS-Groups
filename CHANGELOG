@@ -1,3 +1,9 @@
+0.10.2
+ - when breaking-up the group, do not power on devices which have been powered off during group playback
+ 
+0.10.1
+ - on resume, players that were off before initial playback started were not powered back on
+ 
 0.10.0
  - restore individual players initial power state when group is broken up
 

@@ -181,12 +181,12 @@ sub pause {
 		main::INFOLOG && $log->is_info && $log->info("pause request $self from $client with master ", $self->master);
 
 		# do not break up group solely when it's a "standalone" pause
-		if ((!defined $client || $client == $self->master)) {	
+		if (!defined $client || $client == $self->master) {	
 			main::INFOLOG && $log->is_info && $log->info("master pause ", $self->master, " or no client $client");
 			$self->undoGroup(USER_PAUSE);		
 		} else {
 			main::INFOLOG && $log->is_info && $log->info("member $client paused on its own for ", $self->master);
-			# group will remain assembled for 30 mins
+			# group will remain assembled for required time
 			Slim::Utils::Timers::setTimer($self, time() + $prefs->get('breakupTimeout')*60, \&undoGroup) if $prefs->get('breakupTimeout');
 		}	
 	}	
@@ -286,10 +286,9 @@ sub doGroup {
 			$sprefs->client($member)->set("$key", $data->{$member->id}) if defined $data->{$member->id};
 		}		
 		
-		# power on all members if needed, only on first play, not on resume
-		# unless it was forced off
+		# power on all members on first play, not on resume unless needed
 		Slim::Control::Request::executeRequest($member, ['power', 1, 1]) 
-			if $prefs->client($master)->get('powerPlay') && (!$resume || $member->pluginData('forcedPowerOff'));
+			if $prefs->client($master)->get('powerPlay') && !$member->power && (!$resume || $member->pluginData('powerOnResume'));
 			
 		main::INFOLOG && $log->is_info && $log->info("sync ", $member->name, " to ", $master->name, " former syncgroup ", $member->pluginData('syncgroupid'));
 				
@@ -343,8 +342,11 @@ sub undoGroup {
 			Slim::Control::Request::notifyFromArray($member, ['playlist', 'stop']);	
 			Slim::Control::Request::notifyFromArray($member, ['playlist', 'sync']);
 			
-			# restore power state
-			Slim::Control::Request::executeRequest($member, ['power', $member->pluginData('power'), 1]) 
+			# memorize current power state to avoid powering back on resume if 
+			# it has been powered off individually then restore initial status
+			$member->pluginData(powerOnResume => $member->power);
+			# only restore initial power if member currently powered on
+			Slim::Control::Request::executeRequest($member, ['power', $member->pluginData('power'), 1]) if $member->power;
 		}
 	}
 }
@@ -365,8 +367,9 @@ sub _detach {
 	Slim::Control::Request::executeRequest($client, ['mixer', 'volume', $client->pluginData('volume')]);
 	$client->pluginData(volume => -1);
 	
-	# erase forced power off sequence
-	$client->pluginData(forcedPowerOff => 0);
+	# erase powerOnResume flag, it will be reset correctly if we are undoing a 
+	# group or if the player is joining another sync group on detatch
+	$client->pluginData(powerOnResume => 0);
 	
 	# restore overwritten prefs
 	foreach my $key (keys %$Plugins::Groups::Player::groupPrefs, @Plugins::Groups::Player::onGroupPrefs) {
@@ -388,10 +391,10 @@ sub _detach {
 			$other->controller->sync($client, 1);
 			main::INFOLOG && $log->is_info && $log->info("restore static ", $client->name, " with ", $other->name, " group $syncGroupId");
 			# power-off if other is playing	to avoid member to play when virtual 
-			# stops and memorize that forced power off
+			# stops and memorize that powering on resume is needed
 			if (!$other->isStopped) {
 				Slim::Control::Request::executeRequest($client, ['power', 0]);
-				$client->pluginData(forcedPowerOff => 1);				
+				$client->pluginData(powerOnResume => 1);				
 			}	
 			last;
 		}	
