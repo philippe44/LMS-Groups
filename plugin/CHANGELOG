@@ -1,3 +1,6 @@
+0.11.0
+ - Increase LMS max version
+ 
 0.10.2
  - when breaking-up the group, do not power on devices which have been powered off during group playback
  
