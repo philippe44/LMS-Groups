@@ -37,6 +37,9 @@ sub handler {
 		
 			if ($params->{"delete.$id"}) {
 				$prefs->remove($Slim::Utils::Prefs::Client::clientPreferenceTag . ':' . $id);
+				foreach my $namespace (@{ Slim::Utils::Prefs::namespaces() }) {
+					preferences($namespace)->remove($Slim::Utils::Prefs::Client::clientPreferenceTag . ':' . $id);
+				}
 				Plugins::Groups::Plugin::delPlayer($id);
 				next;
 			}

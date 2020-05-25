@@ -1,5 +1,11 @@
+0.12.1
+ - same but in CLI as well
+ 
+0.12.0
+ - clean all group-remated preferences upon deletion
+ 
 0.11.0
- - Increase LMS max version
+ - increase LMS max version
  
 0.10.2
  - when breaking-up the group, do not power on devices which have been powered off during group playback

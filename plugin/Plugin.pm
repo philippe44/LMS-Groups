@@ -524,6 +524,9 @@ sub _cliCommand {
 		}
 		main::INFOLOG && $log->is_info && $log->info("Deleting $id");
 		$prefs->remove($Slim::Utils::Prefs::Client::clientPreferenceTag . ':' . $id);
+		foreach my $namespace (@{ Slim::Utils::Prefs::namespaces() }) {
+			preferences($namespace)->remove($Slim::Utils::Prefs::Client::clientPreferenceTag . ':' . $id);
+		}
 		delPlayer($id);
 		$request->setStatusDone();
 		return;
