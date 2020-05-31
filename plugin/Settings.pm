@@ -118,9 +118,10 @@ sub update {
 	# update preferences by creating a new set
 	my $cprefs = Slim::Utils::Prefs::Client->new( $prefs, $id, 'no-migrate' );
 	
-	$cprefs->set('powerMaster', $params->{"powerMaster.$id"} ? 1 : 0);
-	$cprefs->set('powerPlay', $params->{"powerPlay.$id"} ? 1 : 0);
-	$cprefs->set('greedy', $params->{"greedy.$id"} ? 1 : 0);
+	# we assume that all prefs are booleans
+	foreach my $key (keys %$Plugins::Groups::Player::playerPrefs) {
+		$cprefs->set($key, $params->{"$key.$id"} ? 1 : 0);
+	}
 						
 	# keep previous members that are not connected ($previous is empty when showing disconnected)								
 	my $members = [ map { /members\.$id\.(.+)/; $1; } grep /members\.$id\./, keys %$params ];

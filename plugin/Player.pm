@@ -57,6 +57,12 @@ my $defaultPrefs = {
 
 our @onGroupPrefs = qw(outputChannels);
 
+our $playerPrefs = {
+	'powerPlay' 	=> 1,
+	'powerMaster' 	=> 1,
+	'greedy' 		=> 0,
+};	
+
 # override the accessor from Client.pm: always return an empty list
 sub chunks { [] }
 
@@ -121,8 +127,7 @@ sub initPrefs {
 	
 	# then init our own prefs
 	$prefs->client($client)->init({
-		'powerMaster' 	=> 1,
-		'powerPlay' 	=> 1,
+		%$playerPrefs,
 		'members'		=> [],
 		'volumes' 		=> {},
 	});

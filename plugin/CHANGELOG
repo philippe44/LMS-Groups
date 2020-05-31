@@ -1,3 +1,9 @@
+0.13.0
+ - add CLI missing parameters (greedy)
+ - remove parameters handling duplicated code
+ - CLI can have +/- option for update
+ - add members to "status" response 
+
 0.12.1
  - same but in CLI as well
  
