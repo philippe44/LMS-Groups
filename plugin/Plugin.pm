@@ -31,6 +31,7 @@ my $prefs = preferences('plugin.groups');
 my $sprefs = preferences('server');
 my $originalVolumeHandler;
 my $originalSyncHandler;
+my $originalStatusHandler;
 
 $prefs->init({
 	# can't set prefs at a true value for checkboxes (unchecked = undef)
@@ -389,6 +390,23 @@ sub initCLI {
 	Slim::Control::Request::addDispatch(['playergroups', '_cmd'],
 	                                                            [0, 0, 1, \&_cliCommand]
 	);
+																
+	$originalStatusHandler = Slim::Control::Request::addDispatch(['status', '_index', '_quantity'], 
+																[1, 1, 1, \&statusQuery]);																
+}
+
+sub statusQuery {
+	my ($request) = @_;
+	my $client = $request->client;
+	
+	$originalStatusHandler->($request);
+	return unless $client->isa("Plugins::Groups::Player");
+
+	my $members = $prefs->client($client)->get('members');
+	return unless scalar @$members;
+
+	my $list = join ',', @$members;	
+	$request->addResult('members', $list);
 }
 
 sub _cliGroups {
