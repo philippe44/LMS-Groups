@@ -1,3 +1,6 @@
+0.13.1
+ - arrays and references...
+ 
 0.13.0
  - add CLI missing parameters (greedy)
  - remove parameters handling duplicated code

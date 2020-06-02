@@ -575,7 +575,7 @@ sub _cliCommand {
 				$cprefs->set('members', []);
 			} else {
 				my @updateList = split /,/, $members;
-				my @memberList = [ $prefs->client($group)->get('members') ];
+				my $memberList = $prefs->client($group)->get('members');
 				
 				# if this an incremental list or a full replacement
 				if ($members =~ /(\-|\+)/) {
@@ -583,14 +583,14 @@ sub _cliCommand {
 						my ($type, $member) = $member =~ /(\-|\+)(.+)/;
 						next unless $type && $member;
 						if ($type eq '-') {
-							@memberList = grep { $_ ne $member } @memberList;
+							$memberList = [ grep { $_ ne $member } @$memberList ];
 							$member = Slim::Player::Client::getClient($member);
 							$member->controller->stop($member) if $member && $group->isSyncedWith($member)
 						} else {
-							push (@memberList, $member) unless grep { $_ eq $member } @memberList;
+							push (@$memberList, $member) unless grep { $_ eq $member } @$memberList;
 						}	
 					}
-					$cprefs->set('members', \@memberList);
+					$cprefs->set('members', \@$memberList);
 				} else { 
 					$cprefs->set('members', \@updateList);
 				}
