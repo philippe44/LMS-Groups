@@ -14,13 +14,6 @@ use Slim::Utils::Log;
 use Slim::Utils::Prefs;
 use Slim::Player::StreamingController;
 
-use Plugins::Groups::StreamingController qw(TRACK_END USER_STOP USER_PAUSE);
-
-# override default Slim::Player::Source::playmode()
-use Plugins::Groups::Source;
-# override default Slim::Player::Playlist::stopAndClear()
-use Plugins::Groups::Playlist;
-
 my $log = Slim::Utils::Log->addLogCategory({
 	'category' => 'plugin.groups',
 	'defaultLevel' => 'ERROR',
@@ -65,6 +58,10 @@ sub initPlugin {
 	my $class = shift;
 	
 	main::INFOLOG && $log->is_info && $log->info(string('PLUGIN_GROUPS_STARTING'));
+	
+	# overloading system methods 
+	*Slim::Player::Source::playmode = \&playmode;
+	*Slim::Player::Playlist::stopAndClear = \&stopAndClear;
 	
 	$prefs->set('restoreStatic', 1) unless $prefs->exits('restoreStatic');
 
@@ -613,6 +610,67 @@ sub groupIDs {
 	return @group if $noSort;
 	return sort { lc($sprefs->client(Slim::Player::Client::getClient($a))->get('playername')) cmp
 			      lc($sprefs->client(Slim::Player::Client::getClient($b))->get('playername')) } @group;	
+}
+
+# overloading of some system functions
+
+sub playmode {
+	my ($client, $newmode, $seekdata, $reconnect, $fadeIn) = @_;
+	my $controller = $client->controller();
+
+	assert($controller);
+		
+	# Short circuit.
+	return _returnPlayMode($controller, $client) unless defined $newmode;
+
+	my $sourcelog = logger('player.source');
+	main::INFOLOG && $sourcelog->is_info && $sourcelog->info('Custom Slim::Player::Source::playmode() called for Groups plugin');	
+	
+	if ($newmode eq 'stop') {
+		# add client
+		$controller->stop($client);
+	} elsif ($newmode eq 'play') {
+		if (!$client->power()) {$client->power(1);}
+		$controller->play(undef, $seekdata, $reconnect, $fadeIn);
+	} elsif ($newmode eq 'pause') {
+		# add $client
+		$controller->pause($client);
+	} elsif ($newmode eq 'resume') {
+		if (!$client->power()) {$client->power(1);}
+		$controller->resume($fadeIn);
+	} else {
+		logBacktrace($client->id . " unknown playmode: $newmode");
+	}
+	
+	# bug 6971
+	# set the player power item on Jive to whatever our power setting now is
+	Slim::Control::Jive::playerPower($client);
+	
+	my $return = _returnPlayMode($controller, $client);
+	
+	if ( main::INFOLOG && $log->is_info ) {
+		$log->info($client->id() . ": Current playmode: $return\n");
+	}
+		
+	return $return;
+}
+
+sub stopAndClear {
+	my $client = shift;
+	
+	# Bug 11447 - Have to stop player and clear song queue
+	# add client
+	$client->controller->stop($client);
+	$client->controller()->resetSongqueue();
+
+	@{playList($client)} = ();
+	$client->currentPlaylist(undef);
+	
+	# Remove saved playlist if available
+	my $playlistUrl = _playlistUrlForClient($client);
+	unlink(Slim::Utils::Misc::pathFromFileURL($playlistUrl)) if $playlistUrl;
+
+	reshuffle($client);
 }
 
 
