@@ -1,3 +1,6 @@
+0.14.2
+ - force syncPower and SyncVolume to 0 to propagate it to members
+ 
 0.14.1
  - overwrite 0.14.0 pushed by mistake
  

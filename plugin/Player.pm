@@ -29,6 +29,7 @@ sub maxBass { 50 }
 sub minBass { 50 }
 sub maxTransitionDuration { 10 }
 sub canDoReplayGain { 65536 }
+sub isVirtual { 1 }
 
 sub opened { return undef }
 sub bufferFullness { 100000 }
@@ -48,6 +49,8 @@ our $groupPrefs = {
 	'transitionSmart'    => 1,
 	'replayGainMode'     => 0,
 	'remoteReplayGain'   => -5,
+	'syncPower'          => 0,
+	'syncVolume'         => 0,
 };	
 
 my $defaultPrefs = {
@@ -115,6 +118,10 @@ sub init {
 		$other->controller->unsync($other) if $otherMasterId && ($otherMasterId eq $syncGroupId);
 	}
 	$sprefs->client($client)->remove('syncgroupid');
+	
+	# we take care of power on/off and volume sync
+	$sprefs->client($client)->remove('syncPower');
+	$sprefs->client($client)->remove('syncVolume');
 	
 	return $client->SUPER::init(@_);
 }
