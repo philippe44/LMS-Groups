@@ -49,12 +49,16 @@ our $groupPrefs = {
 	'transitionSmart'    => 1,
 	'replayGainMode'     => 0,
 	'remoteReplayGain'   => -5,
+};	
+
+our $forcedPrefs = {
 	'syncPower'          => 0,
 	'syncVolume'         => 0,
-};	
+};
 
 my $defaultPrefs = {
 	%{ $groupPrefs },
+	%{ $forcedPrefs },
 	'maxBitrate'		 => 0,
 };
 
@@ -65,6 +69,10 @@ our $playerPrefs = {
 	'powerMaster' 	=> 1,
 	'greedy' 		=> 0,
 };	
+
+$prefs->migrate(1, sub {
+	$prefs->set('cliport', Slim::Utils::Prefs::OldPrefs->get('cliport') || 9090); 1;
+});
 
 # override the accessor from Client.pm: always return an empty list
 sub chunks { [] }
