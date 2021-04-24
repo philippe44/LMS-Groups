@@ -1,3 +1,6 @@
+0.14.4
+ - typos
+ 
 0.14.3
  - create forcedPrefs to make sure user can't tinker with virtual's prefs
  

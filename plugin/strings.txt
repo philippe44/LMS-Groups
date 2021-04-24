@@ -14,7 +14,6 @@ PLUGIN_GROUPS_MEMBERS
 	FR	Membres
 	
 PLUGIN_GROUPS_MEMBERS_DESC
-	DE	#german#
 	EN	Select which players are member of this group
 	FR	Sélectionne les lecteurs membres du groupe
 	
@@ -100,7 +99,7 @@ PLUGIN_GROUPS_OPTIONSVOLUME
 	
 PLUGIN_GROUPS_SYNCOPTIONS
 	DE	Synchronisierungsoptionen
-	EN	Syncronization options
+	EN	Synchronization options
 	FR	Options de synchronization
 
 PLUGIN_GROUPS_SYNCOPTIONS_DESC
