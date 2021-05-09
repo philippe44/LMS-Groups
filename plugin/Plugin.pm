@@ -232,10 +232,17 @@ sub mixerVolumeCommand {
 	
 	my $members = $prefs->client($master)->get('members');	
 	return $originalVolumeHandler->($request) unless scalar @$members;
-	
+
+	# be mindful that volume can be negative for mute	
 	my $oldVolume = $client->volume;
-	$newVolume += $oldVolume if $newVolume =~ /^[\+\-]/;
 	
+	# special handling of incremnent
+	if ($newVolume =~ /^[\+\-]/) {
+		$newVolume += $oldVolume;
+		$newVolume = 100 if $newVolume > 100;
+		$newVolume = 0 if $newVolume < 0;		
+	}	
+		
 	# avoid recursing loop				
 	$master->_volumeDispatching(1);			
 	
