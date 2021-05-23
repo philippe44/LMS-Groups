@@ -1,3 +1,6 @@
+0.14.6
+ - check for client is statusQuery 
+ 
 0.14.5
  - incremental volume boundaries shall be checked
  

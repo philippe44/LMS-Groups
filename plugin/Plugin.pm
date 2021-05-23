@@ -407,7 +407,7 @@ sub statusQuery {
 	my $client = $request->client;
 	
 	$originalStatusHandler->($request);
-	return unless $client->isa("Plugins::Groups::Player");
+	return unless $client && $client->isa("Plugins::Groups::Player");
 
 	my $members = $prefs->client($client)->get('members');
 	return unless scalar @$members;
