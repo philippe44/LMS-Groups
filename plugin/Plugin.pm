@@ -16,11 +16,6 @@ use Slim::Player::StreamingController;
 
 use Plugins::Groups::StreamingController qw(TRACK_END USER_STOP USER_PAUSE);
 
-# override default Slim::Player::Source::playmode()
-use Plugins::Groups::Source;
-# override default Slim::Player::Playlist::stopAndClear()
-use Plugins::Groups::Playlist;
-
 my $log = Slim::Utils::Log->addLogCategory({
 	'category' => 'plugin.groups',
 	'defaultLevel' => 'ERROR',
@@ -67,6 +62,13 @@ sub initPlugin {
 	main::INFOLOG && $log->is_info && $log->info(string('PLUGIN_GROUPS_STARTING'));
 	
 	$prefs->set('restoreStatic', 1) unless $prefs->exits('restoreStatic');
+
+	# override default Slim::Player::Source::playmode() and Slim::Player::Playlist::stopAndClear()
+	if ($main::VERSION lt '8.2.0') {
+		main::INFOLOG && $log->is_info && $log->info('overriding playmode and stopAndClear');
+		require Plugins::Groups::Source;
+		require Plugins::Groups::Playlist;
+	}	
 
 	if ( main::WEBUI ) {
 		require Plugins::Groups::Settings;
