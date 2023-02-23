@@ -82,3 +82,4 @@ $RECYCLE.BIN/
 .vscode
 _backup/*
 *.xml
+*.bak

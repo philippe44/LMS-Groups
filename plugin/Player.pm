@@ -68,6 +68,7 @@ our $playerPrefs = {
 	'powerPlay' 	=> 1,
 	'powerMaster' 	=> 1,
 	'greedy' 		=> 0,
+    'weakVolume'   => 0,
 };	
 
 $prefs->migrate(1, sub {

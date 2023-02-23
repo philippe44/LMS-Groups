@@ -74,8 +74,8 @@ PLUGIN_GROUPS_OPTIONS
 	
 PLUGIN_GROUPS_OPTIONS_DESC
 	DE	Steuert, wie Änderungen an der Gruppe die Player beeinflusst: <br> - Player miteinander ein/ausschalten <br> - Erzwinge die Synchronisation der Player
-	EN	Sets how changes on Group Player affects members <br> - Power on/off members alltogether <br> - Power members when playing <br> - Always force members synchronization
-	FR	Définit la façon dont un changement sur un Lecteur Groupé affecte les membres <br> - Allume/Eteint tous les membres <br> - Allume les membres à la lecture <br> - Force toujours la synchronization
+	EN	Sets how changes on Group Player affects members <br> - Power on/off members alltogether <br> - Power members when playing <br> - Always force members synchronization <br> - Leave individual player's volume
+	FR	Définit la façon dont un changement sur un Lecteur Groupé affecte les membres <br> - Allume/Eteint tous les membres <br> - Allume les membres à la lecture <br> - Force toujours la synchronization <br> - Laisser le volume des lecteurs
 
 PLUGIN_GROUPS_OPTIONSPOWER
 	DE	Schalte alle Geräte mit dem Gruppen-Player ein/aus
@@ -86,6 +86,10 @@ PLUGIN_GROUPS_OPTIONSPOWERPLAY
 	DE	Alle Geräte beim Start einschalten
 	EN	Power all on play
 	FR	Allume tous à la lecture
+	
+PLUGIN_GROUPS_OPTIONSSETVOLUME
+	EN	Do not set volume
+	FR	Laisser le volume
 	
 PLUGIN_GROUPS_OPTIONSGREEDY
 	DE	Immer alle Geräte synchronisieren

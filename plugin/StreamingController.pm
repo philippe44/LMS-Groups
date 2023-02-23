@@ -147,7 +147,7 @@ sub stop {
 		
 			# unsync (do not keep syncid) and rejoin previously established groups
 			$self->SUPER::unsync($client);
-			_detach($client, 1);
+			_detach($self->master, $client, 1);
 		
 			# let the group continue if it has more members
 			return undef if $self->activePlayers() > 1;
@@ -298,12 +298,14 @@ sub doGroup {
 		main::INFOLOG && $log->is_info && $log->info("sync ", $member->name, " to ", $master->name, " former syncgroup ", $member->pluginData('syncgroupid'));
 				
 		$self->SUPER::sync($member, $resume);
-		
-		# memorize and set volume of members, but only memorize the original one
-		my $volume = $member->pluginData('volume');
-		$member->pluginData(volume => $sprefs->client($member)->get("volume")) if !defined($volume) || $volume == -1;
-		# request should be ignored if fixed volume but do not try to set a wrong volume (-1)
-		Slim::Control::Request::executeRequest($member, ['mixer', 'volume', $volumes->{$member->id}]) if $volumes->{$member->id} != -1;
+
+        # memorize and set volume of members, but only memorize the original one		
+        unless ($prefs->client($master)->get('weakVolume')) {
+            my $volume = $member->pluginData('volume');
+            $member->pluginData(volume => $sprefs->client($member)->get("volume")) if !defined($volume) || $volume == -1;
+            # request should be ignored if fixed volume but do not try to set a wrong volume (-1)
+            Slim::Control::Request::executeRequest($member, ['mixer', 'volume', $volumes->{$member->id}]) if $volumes->{$member->id} != -1;
+        }     
 	}
 	
 	# volumes done
@@ -326,7 +328,7 @@ sub undoGroup {
 		$self->SUPER::unsync($member);
 		
 		# rejoin previously established groups
-		_detach($member);
+		_detach($master, $member);
 		
 		# if member has not returned to a sync group, restore previous playlist 
 		# if any or erase Group Player's playlist
@@ -357,7 +359,7 @@ sub undoGroup {
 }
 
 sub _detach {
-	my ($client, $marker) = @_;
+	my ($master, $client, $marker) = @_;
 	
 	# 'make room' in memorized static group for next playback
 	my $syncGroupId = $client->pluginData('syncgroupid') // -1;
@@ -366,11 +368,13 @@ sub _detach {
 	# mark the player
 	$client->pluginData(marker => $marker || 0);
 	
-	# reset volume to previous value and free up room, no risk of volume loop
-	# as controller is a not a special one any more (we are unsync)
-	# the request should be ignored if the device has fixed volume
-	Slim::Control::Request::executeRequest($client, ['mixer', 'volume', $client->pluginData('volume')]);
-	$client->pluginData(volume => -1);
+    unless ($prefs->client($master)->get('weakVolume')) {
+        # reset volume to previous value and free up room, no risk of volume loop
+        # as controller is a not a special one any more (we are unsync)
+        # the request should be ignored if the device has fixed volume
+        Slim::Control::Request::executeRequest($client, ['mixer', 'volume', $client->pluginData('volume')]);
+        $client->pluginData(volume => -1);
+    }    
 	
 	# erase powerOnResume flag, it will be reset correctly if we are undoing a 
 	# group or if the player is joining another sync group on detatch

@@ -7,6 +7,9 @@
 			&nbsp&nbsp
 			<input type="checkbox" name="greedy.[% gid %]" id="greedy.[% gid %]" [% IF device.greedy %] checked [% END %] value="1" class="stdedit"/>
 			<label for="greedy.[% gid %]">[% "PLUGIN_GROUPS_OPTIONSGREEDY" | string %]</label>
+			&nbsp&nbsp			
+			<input type="checkbox" name="weakVolume.[% gid %]" id="weakVolume.[% gid %]" [% IF device.weakVolume %] checked [% END %] value="1" class="stdedit"/>
+			<label for="weakVolume.[% gid %]">[% "PLUGIN_GROUPS_OPTIONSSETVOLUME" | string %]</label>
 		[% END %]
 				
 		[% WRAPPER setting title="PLUGIN_GROUPS_MEMBERS" desc="PLUGIN_GROUPS_MEMBERS_DESC" %]
