@@ -25,6 +25,7 @@ my $log = Slim::Utils::Log->addLogCategory({
 my $prefs = preferences('plugin.groups');
 my $sprefs = preferences('server');
 my $originalVolumeHandler;
+my $originalMuteHandler;
 my $originalSyncHandler;
 my $originalStatusHandler;
 
@@ -98,6 +99,7 @@ sub initPlugin {
 	}
 	
 	$originalVolumeHandler = Slim::Control::Request::addDispatch(['mixer', 'volume', '_newvalue'], [1, 0, 0, \&mixerVolumeCommand]);
+	$originalMuteHandler = Slim::Control::Request::addDispatch(['mixer', 'muting', '_newvalue'], [1, 0, 1, \&mixerMuteCommand]);
 	$originalSyncHandler = Slim::Control::Request::addDispatch(['sync', '_indexid-'], [1, 0, 1, \&syncCommand]);
 }
 
@@ -236,11 +238,11 @@ sub mixerVolumeCommand {
 	return $originalVolumeHandler->($request) unless scalar @$members;
 
 	# be mindful that volume can be negative for mute	
-	my $oldVolume = $client->volume;
+	my $oldVolume = abs($client->volume);
 	
 	# special handling of incremnent
 	if ($newVolume =~ /^[\+\-]/) {
-		$newVolume += $oldVolume;
+		$newVolume += $oldVolume unless $client->volume < 0;
 		$newVolume = 100 if $newVolume > 100;
 		$newVolume = 0 if $newVolume < 0;		
 	}	
@@ -281,7 +283,7 @@ sub mixerVolumeCommand {
 			next if $volumes->{$id} == -1; 
 			
 			# do not use actual $member->volume as we might not be actually synced with it
-			$masterVolume += $volumes->{$id};
+			$masterVolume += abs($volumes->{$id});
 			$count++;
 			main::DEBUGLOG && $log->is_debug && $log->debug("current volume of $id ", $volumes->{$id});
 		}
@@ -301,6 +303,29 @@ sub mixerVolumeCommand {
 	
 	$originalVolumeHandler->($request);
 }
+
+sub mixerMuteCommand {
+	my $request = shift;
+    my $client  = $request->client;
+	my $_newvalue = $request->getParam('_newvalue');
+	my $master = $client->controller->master;
+	my $members = $prefs->client($master)->get('members') || [];	
+		
+	return $originalMuteHandler->($request) unless $client->controller->isa("Plugins::Groups::StreamingController") && 
+												   $client == $master && @$members;
+	
+	main::INFOLOG && $log->is_info && $log->info("group mute command $_newvalue for $master");
+	
+	foreach my $id (@$members) {	
+		main::DEBUGLOG && $log->is_debug && $log->debug("mute commmand volume for $id $_newvalue");
+			
+		# only apply if member is connected & synchronized 
+		my $member = Slim::Player::Client::getClient($id);
+		Slim::Control::Request::executeRequest($member, ['mixer', 'muting', $_newvalue]) if $member && $master->isSyncedWith($member);
+	}	
+	
+	return $originalMuteHandler->($request);
+}	
 
 sub initVolume {
 	my $master = Slim::Player::Client::getClient($_[0]);

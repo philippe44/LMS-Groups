@@ -258,7 +258,7 @@ sub doGroup {
 		# un-mark client now that it has re-joined the group		
 		$member->pluginData(marker => 0);		
 	
-		# only memorize syncgroupid, playlist, power and prefs if we are not already part of a Group 
+		# only memorize syncgroupid, playlist, power, mute and prefs if we are not already part of a Group 
 		if (!$member->controller->isa("Plugins::Groups::StreamingController")) {
 			$member->pluginData(syncgroupid => $sprefs->client($member)->get('syncgroupid') // -1);
 			$member->pluginData(power => $member->power);
@@ -270,9 +270,15 @@ sub doGroup {
 						repeat		=> $sprefs->client($member)->get('repeat'),
 					} );	
 
+			# save all preferences that are changed	
 			foreach my $key (keys %$Plugins::Groups::Player::groupPrefs, %$Plugins::Groups::Player::forcedPrefs, @Plugins::Groups::Player::onGroupPrefs) {
 				$member->pluginData($key => $sprefs->client($member)->get("$key"));
 			}
+			
+			# save mute state which has a unique status as it is taken from prefs but set with 
+			# a mixer command. We also don't want it part of groupPrefs otherwise the request 
+			# might not be executed as it checks for a change compared to prefs
+			$member->pluginData(mute => $sprefs->client($member)->get('mute'));			
 		}	
 		
 		# set all prefs that inherit from virtual player
@@ -305,7 +311,10 @@ sub doGroup {
             $member->pluginData(volume => $sprefs->client($member)->get("volume")) if !defined($volume) || $volume == -1;
             # request should be ignored if fixed volume but do not try to set a wrong volume (-1)
             Slim::Control::Request::executeRequest($member, ['mixer', 'volume', $volumes->{$member->id}]) if $volumes->{$member->id} != -1;
-        }     
+			# mute update after volume set
+			Slim::Control::Request::executeRequest($member, ['mixer', 'muting', $sprefs->client($master)->get('mute')]);
+        }
+		
 	}
 	
 	# volumes done
@@ -374,6 +383,9 @@ sub _detach {
         # the request should be ignored if the device has fixed volume
         Slim::Control::Request::executeRequest($client, ['mixer', 'volume', $client->pluginData('volume')]);
         $client->pluginData(volume => -1);
+		
+		# restore mute after volume (the request will set the preference)
+		Slim::Control::Request::executeRequest($client, ['mixer', 'muting', $client->pluginData('mute')]);
     }    
 	
 	# erase powerOnResume flag, it will be reset correctly if we are undoing a 
