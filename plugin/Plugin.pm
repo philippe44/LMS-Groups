@@ -246,12 +246,13 @@ sub mixerVolumeCommand {
 	# special handling of incremental vol changes
 	if ($newVolume =~ /^[\+\-]/) {
 		my $autoUnmute = $prefs->get('autoUnmute');
-		$newVolume += $oldVolume unless ($client->volume < 0 && !$autoUnmute);
+		$newVolume += $oldVolume if ($client->volume >= 0 || $autoUnmute);
 		$newVolume = 100 if $newVolume > 100;
-		$newVolume = 0 if $newVolume < 0;		
+		$newVolume = 0 if $newVolume < 0;
 		if ($client->volume < 0) {  # set the master volume if the group was muted
-			$client->execute(['mixer', 'volume', $newVolume]);
-		}
+			$request->deleteParam('_newvalue');
+			$request->addParam('_newvalue', $newVolume);
+		}		
 	}	
 	
 	# get the memorized individual volumes
