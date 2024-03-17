@@ -116,6 +116,16 @@ PLUGIN_GROUPS_RESTORESTATIC
 	EN	Restore sync groups 
 	FR	Rétablir les groupes de synchronisation
 	
+PLUGIN_GROUPS_AUTOUNMUTE
+	DE	Stummschaltung der Gruppe bei Lautstärkeänderung aufheben
+	EN	Unmute group on volume change
+	FR	Activer le son du groupe lors d'un changement de volume
+	
+PLUGIN_GROUPS_AUTOUNMUTE_DESC
+	DE	Stummschaltung von Spielern automatisch aufheben, wenn eine schrittweise Änderung der Gruppenlautstärke vorgenommen wird
+	EN	Automatically unmute players when applying an incremental group volume change
+	FR	Réactiver automatiquement le son des lecteurs lors de l'application d'un changement de volume de groupe incrémentiel
+	
 PLUGIN_GROUPS_SYNCREAL
 	DE	Mit Geräte-Gruppe synchronisieren
 	EN	Synchronize to Group Players

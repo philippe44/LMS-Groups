@@ -62,7 +62,7 @@ sub initPlugin {
 	
 	main::INFOLOG && $log->is_info && $log->info(string('PLUGIN_GROUPS_STARTING'));
 	
-	$prefs->set('restoreStatic', 1) unless $prefs->exits('restoreStatic');
+	$prefs->set('restoreStatic', 1) unless $prefs->exists('restoreStatic');
 
 	# override default Slim::Player::Source::playmode() and Slim::Player::Playlist::stopAndClear()
 	if ($main::VERSION lt '8.2.0') {
@@ -236,19 +236,24 @@ sub mixerVolumeCommand {
 	
 	my $members = $prefs->client($master)->get('members');	
 	return $originalVolumeHandler->($request) unless scalar @$members;
+		
+	# avoid recursing loop				
+	$master->_volumeDispatching(1);			
 
 	# be mindful that volume can be negative for mute	
 	my $oldVolume = abs($client->volume);
 	
-	# special handling of incremnent
+	# special handling of incremental vol changes
 	if ($newVolume =~ /^[\+\-]/) {
-		$newVolume += $oldVolume unless $client->volume < 0;
+		my $autoUnmute = $prefs->get('autoUnmute');
+		$newVolume += $oldVolume if ($client->volume >= 0 || $autoUnmute);
 		$newVolume = 100 if $newVolume > 100;
-		$newVolume = 0 if $newVolume < 0;		
+		$newVolume = 0 if $newVolume < 0;
+		if ($client->volume < 0) {  # set the master volume if the group was muted
+			$request->deleteParam('_newvalue');
+			$request->addParam('_newvalue', $newVolume);
+		}		
 	}	
-		
-	# avoid recursing loop				
-	$master->_volumeDispatching(1);			
 	
 	# get the memorized individual volumes
 	my $volumes = $prefs->client($master)->get('volumes');
