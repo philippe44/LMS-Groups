@@ -1,5 +1,9 @@
+0.17.0
+ - do mute/unmut (credit @SamY)
+ - calculate max sample rate based on members
+
 0.16.2
- - Do no set volume at assemnly
+ - Do no set volume at assembly
  
 0.15.0
  - do not override LMS function for version >= 8.2.0

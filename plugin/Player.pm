@@ -22,7 +22,6 @@ my $log = logger('plugin.groups');
 
 sub model { "group" }
 sub modelName { "Group" }
-sub maxSupportedSamplerate { 192000 }
 sub maxTreble { 50 }
 sub minTreble { 50 }
 sub maxBass { 50 }
@@ -77,6 +76,18 @@ $prefs->migrate(1, sub {
 
 # override the accessor from Client.pm: always return an empty list
 sub chunks { [] }
+
+sub maxSupportedSamplerate { 
+	my $self = shift;
+	my $rate = 192000;
+		
+	foreach ( @{$prefs->client($self)->get('members') || []} )	{
+		my $member = Slim::Player::Client::getClient($_) || next;
+		$rate = $member->maxSupportedSamplerate if $member->maxSupportedSamplerate < $rate;
+	}
+
+	return $rate;
+} 
 
 sub formats { 
 	my $self = shift;

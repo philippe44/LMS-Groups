@@ -1,3 +1,7 @@
+0.17.0
+ - do mute/unmut (credit @SamY)
+ - calculate max sample rate based on members
+
 0.16.2
  - Do no set volume at assembly
  
