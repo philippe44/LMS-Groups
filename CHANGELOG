@@ -1,5 +1,8 @@
+0.17.1
+ - fix member mute save/restore
+ 
 0.17.0
- - do mute/unmut (credit @SamY)
+ - do mute/unmute (credit @SamY)
  - calculate max sample rate based on members
 
 0.16.2
