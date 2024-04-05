@@ -312,21 +312,22 @@ sub mixerVolumeCommand {
 sub mixerMuteCommand {
 	my $request = shift;
     my $client  = $request->client;
-	my $_newvalue = $request->getParam('_newvalue');
-	my $master = $client->controller->master;
-	my $members = $prefs->client($master)->get('members') || [];	
-		
+	my $newvalue = $request->getParam('_newvalue');
+	my $master = $client->controller->master;	
+
 	return $originalMuteHandler->($request) unless $client->controller->isa("Plugins::Groups::StreamingController") && 
-												   $client == $master && @$members;
-	
-	main::INFOLOG && $log->is_info && $log->info("group mute command $_newvalue for $master");
+												   $client == $master;
+
+	# don't try to get members before we are sure it's a group...
+	my $members = $prefs->client($master)->get('members') || [];	
+	main::INFOLOG && $log->is_info && $log->info("group mute command $newvalue for $master");
 	
 	foreach my $id (@$members) {	
-		main::DEBUGLOG && $log->is_debug && $log->debug("mute commmand volume for $id $_newvalue");
+		main::DEBUGLOG && $log->is_debug && $log->debug("mute commmand volume for $id $newvalue");
 			
 		# only apply if member is connected & synchronized 
 		my $member = Slim::Player::Client::getClient($id);
-		Slim::Control::Request::executeRequest($member, ['mixer', 'muting', $_newvalue]) if $member && $master->isSyncedWith($member);
+		Slim::Control::Request::executeRequest($member, ['mixer', 'muting', $newvalue]) if $member && $master->isSyncedWith($member);
 	}	
 	
 	return $originalMuteHandler->($request);

@@ -1,3 +1,6 @@
+0.17.2
+ - fix phantom players (don't get members on a non-group)
+ 
 0.17.1
  - fix member mute save/restore
  
