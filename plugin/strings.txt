@@ -1,161 +1,189 @@
 PLUGIN_GROUPS_NAME
+	DA	Gruppér afspillere
 	DE	Geräte Gruppen
 	EN	Group Players
 	FR	Lecteurs Groupés
-	
+
 PLUGIN_GROUPS_DESC
+	DA	Opret virtuelle afspillere, der repræsenterer dynamiske synkroniseringsgrupper. Hver gruppe samles/adskilles automatisk ved afspilning/stop
 	DE	Erstelle Virtuelle Player, die synchronisierte Gruppen repräsentieren. Jede Gruppe wird bei Wiedergabe-Start oder -Stop zusammengestellt.
 	EN	Create additional virtual players that represent dynamic sync groups. Each group is automatically assembled/disassembled at play/stop
 	FR	Création de lecteur virtuels representant des groupes de synchronization dynamiques. Chaque groupe est crée/détruit automatiquement à la lecture/arrêt
-	
+
 PLUGIN_GROUPS_MEMBERS
+	DA	Medlemmer
 	DE	Mitglieder
 	EN	Members
 	FR	Membres
-	
+
 PLUGIN_GROUPS_MEMBERS_DESC
+	DA	Vælg afspillere, der er medlem af gruppen
 	EN	Select which players are member of this group
 	FR	Sélectionne les lecteurs membres du groupe
-	
+
 PLUGIN_GROUPS_STARTING
+	DA	Starter afspillegruppe
 	DE	Starte Gruppen
 	EN	Starting Group Players
 	FR	Démarrage des Lecteurs Groupés
-	
+
 PLUGIN_GROUPS_SHOWDISCONNECTED
+	DA	Inkludér ikke-forbundne afspillere
 	DE	Zeige nicht verbundene Geräte
 	EN	Include disconnected players
 	FR	Inclure les lecteurs déconnectés
-	
+
 PLUGIN_GROUPS_SHOWDISCONNECTED_DESC
+	DA	Vis alle afspillere, inklusive enheder, der i øjeblikket ikke er koblet på netværket.
 	DE	Zeige alle Geräte, auch jene, welche zur Zeit nicht mit dem Server verbunden sind.
 	EN	Show all players, including devices which currently aren't connected.
 	FR	Montre tous les lecteurs, incluant ceux qui sont déconnectés
-	
+
 PLUGIN_GROUPS_BREAKUPTIMEOUT
+	DA	Timeout for gruppe-opløsning
 	DE	Pausierte Gruppe auflösen
 	EN	Group breakup timeout
 	FR	Timer de séparation
-	
+
 PLUGIN_GROUPS_BREAKUPTIMEOUT_DESC
+	DA	Når der trykkes på pause på et gruppe-medlem og for at tillade genoptagelse, forbliver gruppen samlet i dette antal minutter (0 = ingen grænse)
 	DE	Wenn auf einem Gruppen-Mitglied Pause gedrückt wird, verbleibe für diese Anzahl Minuten gruppiert, um die Wiedergabe fortsetzen zu können (0 = unbeschränkt).
 	EN	When pause is pressed on a member and to allow resume, the group will stay assembled for this amount of minutes (0 = no limit)
 	FR	Lors la pause est faite sur un player individuel et afin de permettre la reprise, le groupe restera assemblé pour ce nombre minutes (0 = pas de limite)
-	
+
 PLUGIN_GROUPS_NEWGROUP
+	DA	Tilføj en ny afspillegruppe
 	DE	Neue Gruppe hinzufügen
 	EN	Add a new Group Player
 	FR	Ajouter un Lecteur Groupé
-	
+
 PLUGIN_GROUPS_NEWGROUP_NAME
+	DA	Navn for afspillegruppe
 	DE	Neuer Gruppen-Name
 	EN	New Group Player name
 	FR	Nom du Lecteur Groupé
-	
+
 PLUGIN_GROUPS_NEWGROUP_DESC
+	DA	Indtast navnet på den nye afspillegruppe, og tryk på Anvend for at oprette det. Redigér afspillegruppe i området ovenfor for at få detaljerne korrekte.
 	DE	Gib den neuen Namen ein und bestätige durch Drücken von "Anwenden". Dann bearbeite die Player-Details oben.
 	EN	Enter the name of the new Group Player set, and press Apply to create it. Then edit the player set in the area above to get the details correct.
 	FR	Entrez le nom du Lecteur Groupé et cliquez sur Appliquer. Editez ensuite le lecteur dans la zone ci-dessus pour ajouter des membres
-	
+
 PLUGIN_GROUPS_DELETEGROUP
+	DA	Slet
 	DE	Löschen
 	EN	Delete
 	FR	Supprimer
-	
+
 PLUGIN_GROUPS_DELETEGROUP_DESC
+	DA	Markér dette afkrydsningsfelt for at slette gruppen permanent
 	DE	Kreuze diese Checkbox an, um die Gruppe definitiv zu löschen.
 	EN	Check this box and press Apply to permanently delete this Group Player
 	FR	Cliquez ici puis sur Appliquer pour détruire le Lecteur Groupé
-	
+
 PLUGIN_GROUPS_OPTIONS
+	DA	Indstillinger
 	DE	Einstellungen
 	EN	Options
 	FR	Options
-	
+
 PLUGIN_GROUPS_OPTIONS_DESC
+	DA	Styrer hvordan ændringer i gruppen påvirker afspillerne: <br> - Tænd/sluk afspillere fælles med hinanden <br> - Tving afspillere til at synkronisere <br> - Lad hver afspillers lydstyrke være uændret
 	DE	Steuert, wie Änderungen an der Gruppe die Player beeinflusst: <br> - Player miteinander ein/ausschalten <br> - Erzwinge die Synchronisation der Player
 	EN	Sets how changes on Group Player affects members <br> - Power on/off members alltogether <br> - Power members when playing <br> - Always force members synchronization <br> - Leave individual player's volume
 	FR	Définit la façon dont un changement sur un Lecteur Groupé affecte les membres <br> - Allume/Eteint tous les membres <br> - Allume les membres à la lecture <br> - Force toujours la synchronization <br> - Laisser le volume des lecteurs
 
 PLUGIN_GROUPS_OPTIONSPOWER
+	DA	Tænd/sluk alle afspillere i afspillegruppen
 	DE	Schalte alle Geräte mit dem Gruppen-Player ein/aus
 	EN	Power on/off all with Group Player
 	FR	Allume/Eteint tout avec le Lecteur Groupé
-	
+
 PLUGIN_GROUPS_OPTIONSPOWERPLAY
+	DA	Tænd alle ved afspilning
 	DE	Alle Geräte beim Start einschalten
 	EN	Power all on play
 	FR	Allume tous à la lecture
-	
+
 PLUGIN_GROUPS_OPTIONSSETVOLUME
+	DA	Lad lydstyrken være uændret
 	EN	Do not set volume
 	FR	Laisser le volume
-	
+
 PLUGIN_GROUPS_OPTIONSGREEDY
+	DA	Altid synkronisér alle medlemmer
 	DE	Immer alle Geräte synchronisieren
 	EN	Always synchronize all members
 	FR	Synchronize toujours tous les membres
-	
+
 PLUGIN_GROUPS_OPTIONSVOLUME
+	DA	Lydstyrke
 	DE	Lautstärke
 	EN	Volume
 	FR	Volume
-	
+
 PLUGIN_GROUPS_SYNCOPTIONS
+	DA	Synkroniseringsindstillinger
 	DE	Synchronisierungsoptionen
 	EN	Synchronization options
 	FR	Options de synchronization
 
 PLUGIN_GROUPS_SYNCOPTIONS_DESC
+	DA	<i>- Gendan synkroniseringsgruppe: </i>Når en afspillegruppe stopper, kan medlemmer der tilhørte en LMS-synkroniseringsgruppe knyttes til den igen. De vil genoptage afspilningen ved næste nummer<br><i>- Synkroniser til...: </i> En rigtig afspiller kan manuelt synkroniseres til en gruppeafspiller (dens lydstyrke forbliver uafhængig)
 	DE	<i>- Gruppen wieder herstellen: </i>Wenn eine Geräte Gruppe gestoppt wird, können die enthaltenen Player wieder der zuvor zugehörigen Synchronisations-Gruppe zugewiesen werden. Die Wiedergabe wird mit dem nächsten Titel wieder hergestellt.<br><i>- Mit Geräte-Gruppe...: </i>Ein echtes Gerät kann manuell mit einem Gruppen-Player synchronisiert werden (Lautstärke bleibt unabhängig)
 	EN	<i>- Restore sync group: </i>When a Group Player stops, members that belonged to a LMS sync group can be re-associated to it. They will resume playing at next track<br><i>- Synchronize to...: </i> A real player can be manually synchronized to a Group Player (its volume remains independant)
 	FR	<i>- Rétablir les groupes...: </i>Lorsqu'un Lecteur Groupé s'arrête, les membres appartenant à un groupe de synchronisation peuvent lui être ré-affectés. Ils ne recommenceront à jouer qu'à la piste suivante<br><i>- Synchronise avec...: </i>Un lecteur peut être ajouté manuellement à un Lecteur Groupé (son volume reste indépendant)
-	
+
 PLUGIN_GROUPS_RESTORESTATIC
+	DA	Genopret synkroniseringsgruppe
 	DE	Gruppen wieder herstellen
 	EN	Restore sync groups 
 	FR	Rétablir les groupes de synchronisation
-	
+
 PLUGIN_GROUPS_AUTOUNMUTE
+	DA	Slå lyden til for gruppen ved lydstyrkeændring
 	DE	Stummschaltung der Gruppe bei Lautstärkeänderung aufheben
 	EN	Unmute group on volume change
 	FR	Activer le son du groupe lors d'un changement de volume
-	
+
 PLUGIN_GROUPS_AUTOUNMUTE_DESC
+	DA	Slå automatisk lyden til for afspillere, når du anvender en trinvis lydstyrkenændring for gruppen
 	DE	Stummschaltung von Spielern automatisch aufheben, wenn eine schrittweise Änderung der Gruppenlautstärke vorgenommen wird
 	EN	Automatically unmute players when applying an incremental group volume change
 	FR	Réactiver automatiquement le son des lecteurs lors de l'application d'un changement de volume de groupe incrémentiel
-	
+
 PLUGIN_GROUPS_SYNCREAL
+	DA	Synkronisér med afspillegruppe
 	DE	Mit Geräte-Gruppe synchronisieren
 	EN	Synchronize to Group Players
 	FR	Synchronise avec les Lecteurs Groupés
-	
+
 PLUGIN_GROUPS_PLAYERSETTINGS
+	DA	Grupper
 	DE	Gruppen
 	EN	Groups
 	FR	Groupes
-	
+
 PLUGIN_GROUPS_MEMBERSHIPS
+	DA	Medlemskab af gruppe
 	DE	Gruppen-Mitgliedschaft
 	EN	Group memberships
 	FR	Membre des groupes
-	
+
 PLUGIN_GROUPS_MEMBERSHIPS_DESC
+	DA	Vælg hvilke afspillegrupper enheden tilhører
 	DE	Wähle die Gruppen, zu welchen das Gerät gehört
 	EN	Select which groups player is member of
 	FR	Sélectionne les groupes dont le lecteur est membre
-	
+
 PLUGIN_GROUPS_OUPUTCHANNELS_DESC
+	DA	Sæt kanaler for denne afspiller, når den er et aktivt medlem af en gruppe
 	DE	Wähle die Kanäle für dieses Gerät, wenn es Mitglied einer Gruppe ist
 	EN	Set channels for this player when it is an active member of a Group
 	FR	Configure les canaux pour ce lecteur lorsqu'il est membre actif d'un groupe
-	
+
 PLUGIN_GROUPS_PLAYERDEFAULTS
+	DA	(uændret)
 	DE	(Standard)
 	EN	(unmodified)
 	FR	(inchangé)
-	
-
-	
-
