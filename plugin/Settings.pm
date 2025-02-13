@@ -24,7 +24,7 @@ sub page {
 }
 
 sub prefs {
-	return ($prefs, qw(restoreStatic showDisconnected breakupTimeout syncReal autoUnmute));
+	return ($prefs, qw(restoreStatic showDisconnected breakupTimeout syncReal autoUnmute sendVolumeFixed));
 }
 
 sub handler {

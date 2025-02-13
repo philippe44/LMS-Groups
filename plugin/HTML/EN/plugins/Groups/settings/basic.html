@@ -12,6 +12,10 @@
 		<input type="checkbox" name="pref_autoUnmute" id="pref_autoUnmute" [% IF prefs.pref_autoUnmute %] checked [% END %] value="1" />
 	[% END %]	
 	
+	[% WRAPPER setting title="PLUGIN_GROUPS_SENDVOLUMEFIXED" desc="PLUGIN_GROUPS_SENDVOLUMEFIXED_DESC" %]
+		<input type="checkbox" name="pref_sendVolumeFixed" id="pref_sendVolumeFixed" [% IF prefs.pref_sendVolumeFixed %] checked [% END %] value="1" />
+	[% END %]	
+	
 	[% WRAPPER setting title="PLUGIN_GROUPS_SHOWDISCONNECTED" desc="PLUGIN_GROUPS_SHOWDISCONNECTED_DESC" %]
 		<input type="checkbox" name="pref_showDisconnected" id="pref_showDisconnected" [% IF prefs.pref_showDisconnected %] checked [% END %] value="1" />
 	[% END %]	
