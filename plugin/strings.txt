@@ -137,7 +137,7 @@ PLUGIN_GROUPS_SYNCOPTIONS_DESC
 PLUGIN_GROUPS_RESTORESTATIC
 	DA	Genopret synkroniseringsgruppe
 	DE	Gruppen wieder herstellen
-	EN	Restore sync groups
+	EN	Restore sync groups 
 	FR	Rétablir les groupes de synchronisation
 
 PLUGIN_GROUPS_AUTOUNMUTE
@@ -151,18 +151,6 @@ PLUGIN_GROUPS_AUTOUNMUTE_DESC
 	DE	Stummschaltung von Spielern automatisch aufheben, wenn eine schrittweise Änderung der Gruppenlautstärke vorgenommen wird
 	EN	Automatically unmute players when applying an incremental group volume change
 	FR	Réactiver automatiquement le son des lecteurs lors de l'application d'un changement de volume de groupe incrémentiel
-
-PLUGIN_GROUPS_SENDVOLUMEFIXED
-	DA	Send gruppevolumenændringer til alle spillere
-	DE	Senden Sie Gruppenlautstärkeänderungen an alle Spieler
-	EN	Send group volume changes to all players
-	FR	Envoyer les modifications de volume du groupe à tous les joueurs
-
-PLUGIN_GROUPS_SENDVOLUMEFIXED_DESC
-	DA	Send gruppevolumenændringer til alle spillere, inklusive dem med fast lydstyrke
-	DE	Senden Sie Gruppenlautstärkeänderungen an alle Spieler, auch an die mit fester Lautstärke
-	EN	Send group volume changes to all players, including those with fixed volume
-	FR	Envoyer les modifications de volume du groupe à tous les joueurs, y compris ceux avec un volume fixe
 
 PLUGIN_GROUPS_SYNCREAL
 	DA	Synkronisér med afspillegruppe

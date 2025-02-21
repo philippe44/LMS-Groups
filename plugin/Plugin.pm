@@ -278,11 +278,12 @@ sub mixerVolumeCommand {
 		}
 	} else {
 		# memorize volume in master's prefs
-		if ($sprefs->client($client)->get('digitalVolumeControl') || $prefs->get('sendVolumeFixed')) {
+		if ($sprefs->client($client)->get("digitalVolumeControl") || !$client->hasDigitalOut()) {
 			$volumes->{$client->id} = $newVolume;
 		} else {
 			$volumes->{$client->id} = -1;
 		}
+
 		my $masterVolume = 0;
 		my $count = 0;
 
@@ -353,9 +354,9 @@ sub initVolume {
 	foreach my $id (@$members) {
 		my $member = Slim::Player::Client::getClient($id);
 
-		# initialize member's volume if needed, ignore fixed volume unless pref is set
+		# initialize member's volume if possible & needed, ignore fixed volume
 		if (!defined $member || $sprefs->client($member)->get('digitalVolumeControl') ||
-				$prefs->get('sendVolumeFixed')) {
+				!$member->hasDigitalOut()) {
 			$count++;
 	   		# if member is not connected, just use the last known volume
 			$volumes->{$id} = (defined $member ? $member->volume : 50) if !defined $volumes->{$id};
