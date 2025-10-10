@@ -1,3 +1,6 @@
+0.18.0
+ - fix volume for fixed volume players (pun intended)
+ 
 0.17.2
  - fix phantom players (don't get members on a non-group)
  
