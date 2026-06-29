@@ -109,9 +109,7 @@ sub postinitPlugin {
 sub shutdownPlugin {
 	foreach ( Plugins::Groups::Plugin->groupIDs(1) ) {
 		my $controller = Slim::Player::Client::getClient($_)->controller();
-		if ($controller->can('undoGroup')) {
-			$controller->undoGroup();
-		}
+		$controller->undoGroup() if $controller->can('undoGroup');
 	}
 }
 
