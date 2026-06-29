@@ -88,9 +88,12 @@ sub initPlugin {
 
 			Slim::Web::Pages::JS->addJSFunction('js-main', 'plugins/groups/js-main-grouping.js');
 		}
-
 	}
+}
 
+sub postinitPlugin {
+	my $class = shift;
+	
 	$class->initCLI();
 
 	foreach my $id ( $class->groupIDs(1) ) {
