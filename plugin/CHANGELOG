@@ -1,3 +1,6 @@
+0.18.1
+ - Prevent error upon shutdown by undoing groups (credits @SamInPgh)
+ 
 0.18.0
  - fix volume for fixed volume players (pun intended)
  
