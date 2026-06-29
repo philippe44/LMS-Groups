@@ -88,9 +88,12 @@ sub initPlugin {
 
 			Slim::Web::Pages::JS->addJSFunction('js-main', 'plugins/groups/js-main-grouping.js');
 		}
-
 	}
+}
 
+sub postinitPlugin {
+	my $class = shift;
+	
 	$class->initCLI();
 
 	foreach my $id ( $class->groupIDs(1) ) {
@@ -105,7 +108,8 @@ sub initPlugin {
 
 sub shutdownPlugin {
 	foreach ( Plugins::Groups::Plugin->groupIDs(1) ) {
-		Slim::Player::Client::getClient($_)->controller()->undoGroup();
+		my $controller = Slim::Player::Client::getClient($_)->controller();
+		$controller->undoGroup() if $controller->can('undoGroup');
 	}
 }
 
